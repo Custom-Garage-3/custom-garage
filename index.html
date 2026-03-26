@@ -2063,26 +2063,58 @@ function goTo(target,carId){
   const cur=screenStack[screenStack.length-1];
   if(cur===target&&target!=='detail')return;
 
-  // 全画面を非表示
+  // 全画面を非表示（launchは別管理）
   document.querySelectorAll('.screen').forEach(s=>{
     s.classList.remove('active');
     s.style.display='';
   });
   // launch画面を確実に非表示
-  if(target!=='launch'){
-    const launchEl=document.getElementById('screenLaunch');
-    if(launchEl){launchEl.classList.remove('screen-launch-default','active');launchEl.style.display='none';}
-  }
+  const launchEl=document.getElementById('screenLaunch');
+  if(launchEl){launchEl.classList.remove('screen-launch-default','active');launchEl.style.display='none';}
+
+  // 画面ID解決マップ
+  const screenMap = {
+    home:'screenHome', fav:'screenFav', filter:'screenFilter',
+    mypage:'screenMypage', sell:'screenSell', detail:'screenDetail',
+    talkList:'screenTalkList', chat:'screenChat',
+    login:'screenLogin', register:'screenRegister',
+    onboard:'screenOnboard', launch:'screenLaunch',
+    notif:'screenNotif', profileEdit:'screenProfileEdit',
+    garageEdit:'screenGarageEdit', bankRegister:'screenBankRegister',
+    sellSuccess:'screenSellSuccess', addressEdit:'screenAddressEdit',
+    paymentMethod:'screenPaymentMethod', myListings:'screenMyListings',
+    myPurchases:'screenMyPurchases', myDrafts:'screenMyDrafts',
+    guide:'screenGuide', history:'screenHistory',
+    purchaseSuccess:'screenPurchaseSuccess', emailVerify:'screenEmailVerify',
+    checkout:'screenCheckout', terms:'screenTerms',
+    privacy:'screenPrivacy', admin:'screenAdmin',
+  };
 
   if(target==='home'){screenStack=['home'];renderCards();}
   else if(target==='fav'){renderFavScreen();screenStack=['fav'];}
   else if(target==='filter'){initFltScreen();screenStack=['filter'];}
   else if(target==='mypage'){screenStack=['mypage'];}
-  else if(target==='detail'&&carId!=null){currentCarId=carId;populateDetail(carId);screenStack.push('detail');}
+  else if(target==='detail'&&carId!=null){currentCarId=String(carId);populateDetail(String(carId));screenStack.push('detail');}
   else{screenStack.push(target);}
 
-  const next=document.getElementById('screen'+cap(target));
-  if(next){next.classList.add('active');}
+  // 画面を表示
+  const screenId = screenMap[target] || ('screen'+cap(target));
+  const next = document.getElementById(screenId);
+  if(next) next.classList.add('active');
+
+  // 画面固有の処理
+  if(target==='login') setTimeout(loadSavedLogin, 100);
+  if(target==='notif') renderNotif();
+  if(target==='talkList') loadTalkList();
+  if(target==='history') loadHistory();
+  if(target==='myListings') loadMyListings();
+  if(target==='myPurchases') loadMyPurchases();
+  if(target==='myDrafts') loadMyDrafts();
+  if(target==='paymentMethod') openPaymentMethod();
+  if(target==='guide') openGuide();
+  if(target==='addressEdit') openAddressEdit();
+  if(target==='bankRegister') openBankRegister();
+  if(target==='admin') loadAdminTransport();
 }
 function goBack(){
   if(screenStack.length<=1)return;
