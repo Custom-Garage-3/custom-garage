@@ -3661,6 +3661,472 @@ function clearHistory(){
   if(cnt) cnt.textContent = '0件';
 }
 
+// ══ 閲覧履歴 ══
+function loadHistory(){
+  const el = document.getElementById('historyListEl');
+  if(!el) return;
+  try{
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const hist = raw ? JSON.parse(raw) : [];
+    if(hist.length === 0){
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">閲覧履歴はありません</div>';
+      return;
+    }
+    el.innerHTML = hist.map(h => `
+      <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);cursor:pointer;background:var(--surface);" onclick="currentCarId='${h.id}';goTo('detail')">
+        <img src="${h.img||''}" style="width:72px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;color:var(--text-muted);">${h.maker||''}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.name||''}</div>
+          <div style="font-family:var(--font-num);font-size:14px;font-weight:700;color:var(--accent);">${h.price||''}</div>
+        </div>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込みに失敗しました</div>'; }
+}
+
+// ══ プロフィール編集 ══
+function openProfileEdit(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  // 現在のプロフィール値をフォームに反映
+  try{
+    window._fbDb.collection('users').doc(user.uid).get().then(doc=>{
+      if(!doc.exists) return;
+      const d = doc.data();
+      const f = id => document.getElementById(id);
+      if(f('pe_uname')) f('pe_uname').value = d.username||'';
+      if(f('pe_bio'))   f('pe_bio').value   = d.bio||'';
+      if(f('pe_sns'))   f('pe_sns').value   = d.sns||'';
+      if(f('peAvatarImg') && d.avatarUrl) f('peAvatarImg').src = d.avatarUrl;
+    });
+  }catch(e){}
+  goTo('profileEdit');
+}
+
+async function saveProfileEdit(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb) return;
+  const btn = document.querySelector('#screenProfileEdit .pe-save-btn');
+  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  try{
+    await window._fbDb.collection('users').doc(user.uid).set({
+      username: f('pe_uname'),
+      bio:      f('pe_bio'),
+      sns:      f('pe_sns'),
+      updatedAt: new Date().toISOString()
+    },{ merge:true });
+    showToast('✓ プロフィールを保存しました', 'var(--green)');
+    await loadUserProfile(user.uid);
+    goBack();
+  }catch(e){
+    showToast('⚠️ 保存に失敗しました', 'var(--accent)');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='保存する'; }
+  }
+}
+
+async function uploadAvatar(input){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !input.files[0]) return;
+  const file = input.files[0];
+  if(file.size > 5*1024*1024){ showToast('⚠️ 5MB以下の画像を選択してください', 'var(--accent)'); return; }
+  try{
+    showToast('アップロード中...', '#333');
+    const ref = window._fbStorage.ref(`avatars/${user.uid}`);
+    await ref.put(file);
+    const url = await ref.getDownloadURL();
+    await window._fbDb.collection('users').doc(user.uid).set({ avatarUrl: url },{ merge:true });
+    const img = document.getElementById('peAvatarImg');
+    const mpImg = document.querySelector('.mp-avatar');
+    if(img) img.src = url;
+    if(mpImg) mpImg.src = url;
+    showToast('✓ 写真を更新しました', 'var(--green)');
+  }catch(e){ showToast('⚠️ アップロードに失敗しました', 'var(--accent)'); }
+}
+
+// ══ マイガレージ ══
+let garageEditId = null;
+
+async function loadGarageList(){
+  const user = window._fbAuth?.currentUser;
+  const el = document.getElementById('mpGarageList');
+  if(!el) return;
+  if(!user || !window._fbDb){
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">ログインして愛車を登録しましょう！</div>';
+    return;
+  }
+  try{
+    const snap = await window._fbDb.collection('users').doc(user.uid).collection('garage').get();
+    if(snap.empty){
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">愛車を登録しましょう！</div>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(doc=>{
+      const d = doc.data();
+      return `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border);align-items:center;cursor:pointer;" onclick="openGarageEdit('${doc.id}')">
+        ${d.imgUrl ? `<img src="${d.imgUrl}" style="width:60px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : '<div style="width:60px;height:48px;border-radius:8px;background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">🚗</div>'}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${d.maker||''} ${d.model||''}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${d.year||''} ${d.color||''}</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>`;
+    }).join('');
+  }catch(e){ console.log('garage load err:', e); }
+}
+
+function openGarageEdit(docId){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  garageEditId = docId;
+  const title = document.getElementById('garageEditTitle');
+  const delBtn = document.getElementById('garageDeleteBtn');
+  // フォームリセット
+  ['garage_maker','garage_model','garage_year','garage_mileage','garage_color','garage_memo'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.querySelectorAll('.garage-chip').forEach(c=>c.classList.remove('on'));
+  const img = document.getElementById('garageEditImg');
+  const ph = document.getElementById('garageImgPlaceholder');
+  if(img){ img.src=''; img.style.display='none'; }
+  if(ph) ph.style.display='flex';
+
+  if(docId){
+    if(title) title.textContent = '愛車を編集';
+    if(delBtn) delBtn.style.display = 'block';
+    // 既存データを読み込む
+    window._fbDb.collection('users').doc(user.uid).collection('garage').doc(docId).get().then(doc=>{
+      if(!doc.exists) return;
+      const d = doc.data();
+      const f = id => document.getElementById(id);
+      if(f('garage_maker'))   f('garage_maker').value   = d.maker||'';
+      if(f('garage_model'))   f('garage_model').value   = d.model||'';
+      if(f('garage_year'))    f('garage_year').value    = d.year||'';
+      if(f('garage_mileage')) f('garage_mileage').value = d.mileage||'';
+      if(f('garage_color'))   f('garage_color').value   = d.color||'';
+      if(f('garage_memo'))    f('garage_memo').value    = d.memo||'';
+      if(d.imgUrl && img && ph){ img.src=d.imgUrl; img.style.display='block'; ph.style.display='none'; }
+      if(d.tags && Array.isArray(d.tags)){
+        document.querySelectorAll('.garage-chip').forEach(c=>{ if(d.tags.includes(c.textContent)) c.classList.add('on'); });
+      }
+    });
+  } else {
+    if(title) title.textContent = '愛車を追加';
+    if(delBtn) delBtn.style.display = 'none';
+  }
+  goTo('garageEdit');
+}
+
+async function saveGarageCar(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb){ showToast('⚠️ ログインが必要です', 'var(--accent)'); return; }
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  if(!f('garage_maker') || !f('garage_model')){ showToast('⚠️ メーカーと車種名は必須です', 'var(--accent)'); return; }
+  const btn = document.querySelector('#screenGarageEdit .pe-save-btn');
+  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
+  const tags = [...document.querySelectorAll('.garage-chip.on')].map(c=>c.textContent);
+  const data = {
+    maker: f('garage_maker'), model: f('garage_model'), year: f('garage_year'),
+    mileage: f('garage_mileage'), color: f('garage_color'), memo: f('garage_memo'),
+    tags, updatedAt: new Date().toISOString()
+  };
+  try{
+    const ref = window._fbDb.collection('users').doc(user.uid).collection('garage');
+    if(garageEditId) await ref.doc(garageEditId).set(data,{merge:true});
+    else await ref.add({ ...data, createdAt: new Date().toISOString() });
+    showToast('✓ 愛車を保存しました', 'var(--green)');
+    await loadGarageList();
+    goBack();
+  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
+}
+
+async function deleteGaragecar(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !garageEditId) return;
+  if(!confirm('この愛車を削除しますか？')) return;
+  try{
+    await window._fbDb.collection('users').doc(user.uid).collection('garage').doc(garageEditId).delete();
+    showToast('削除しました', '#333');
+    await loadGarageList();
+    goBack();
+  }catch(e){ showToast('⚠️ 削除に失敗しました', 'var(--accent)'); }
+}
+
+async function uploadGaragePhoto(input){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !input.files[0]) return;
+  const file = input.files[0];
+  if(file.size > 10*1024*1024){ showToast('⚠️ 10MB以下の画像を選択してください', 'var(--accent)'); return; }
+  try{
+    showToast('アップロード中...', '#333');
+    const ref = window._fbStorage.ref(`garage/${user.uid}/${Date.now()}`);
+    await ref.put(file);
+    const url = await ref.getDownloadURL();
+    const img = document.getElementById('garageEditImg');
+    const ph = document.getElementById('garageImgPlaceholder');
+    if(img){ img.src=url; img.style.display='block'; }
+    if(ph) ph.style.display='none';
+    showToast('✓ 写真を追加しました', 'var(--green)');
+  }catch(e){ showToast('⚠️ アップロードに失敗しました', 'var(--accent)'); }
+}
+
+function toggleGarageAcc(idx){
+  const body = document.getElementById('garageAccBody'+idx);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'flex';
+}
+
+function toggleGarageChip(el, acc){
+  el.classList.toggle('on');
+  const cnt = document.querySelectorAll('#garageAccBody'+acc+' .garage-chip.on').length;
+  const badge = document.getElementById('garageAccCnt'+acc);
+  if(badge){ badge.textContent = cnt+'件選択'; badge.style.display = cnt>0 ? 'inline-block' : 'none'; }
+}
+
+// ══ 住所編集 ══
+function openAddressEdit(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  window._fbDb.collection('users').doc(user.uid).get().then(doc=>{
+    if(!doc.exists) return;
+    const d = doc.data();
+    const f = id => document.getElementById(id);
+    if(f('addr_zip'))    f('addr_zip').value    = d.addrZip||'';
+    if(f('addr_pref'))   f('addr_pref').value   = d.addrPref||'';
+    if(f('addr_city'))   f('addr_city').value   = d.addrCity||'';
+    if(f('addr_street')) f('addr_street').value = d.addrStreet||'';
+    if(f('addr_name'))   f('addr_name').value   = d.addrName||'';
+  }).catch(()=>{});
+  goTo('addressEdit');
+}
+
+async function saveAddress(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb) return;
+  const btn = document.querySelector('#screenAddressEdit .pe-save-btn');
+  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  try{
+    await window._fbDb.collection('users').doc(user.uid).set({
+      addrZip: f('addr_zip'), addrPref: f('addr_pref'), addrCity: f('addr_city'),
+      addrStreet: f('addr_street'), addrName: f('addr_name'), updatedAt: new Date().toISOString()
+    },{ merge:true });
+    showToast('✓ 住所を保存しました', 'var(--green)');
+    goBack();
+  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
+}
+
+// ══ 口座登録 ══
+function openBankRegister(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  window._fbDb.collection('users').doc(user.uid).get().then(doc=>{
+    if(!doc.exists) return;
+    const d = doc.data();
+    const cardArea = document.getElementById('bankCardArea');
+    const formArea = document.getElementById('bankFormArea');
+    const saveBar  = document.getElementById('bankSaveBar');
+    if(d.bankName){
+      if(cardArea){ cardArea.style.display='block'; }
+      if(formArea){ formArea.style.display='none'; }
+      if(saveBar)  { saveBar.style.display='none'; }
+      const cn = document.getElementById('bankCardName');
+      const cu = document.getElementById('bankCardNum');
+      const ch = document.getElementById('bankCardHolder');
+      if(cn) cn.textContent = d.bankName + (d.bankBranch?' '+d.bankBranch:'');
+      if(cu) cu.textContent = d.bankType+' '+d.bankNumber?.replace(/.(?=.{2})/g,'*');
+      if(ch) ch.textContent = d.bankHolder||'';
+    } else {
+      if(cardArea){ cardArea.style.display='none'; }
+      if(formArea){ formArea.style.display='block'; }
+      if(saveBar)  { saveBar.style.display='block'; }
+    }
+  }).catch(()=>{});
+  goTo('bankRegister');
+}
+
+async function saveBankAccount(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb) return;
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  if(!f('bank_name')||!f('bank_number')||!f('bank_holder')){ showToast('⚠️ 必須項目を入力してください', 'var(--accent)'); return; }
+  const btn = document.querySelector('#screenBankRegister .pe-save-btn');
+  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
+  try{
+    await window._fbDb.collection('users').doc(user.uid).set({
+      bankName: f('bank_name'), bankBranch: f('bank_branch'), bankType: f('bank_type'),
+      bankNumber: f('bank_number'), bankHolder: f('bank_holder'), updatedAt: new Date().toISOString()
+    },{ merge:true });
+    showToast('✓ 口座を登録しました', 'var(--green)');
+    goBack();
+  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
+}
+
+async function deleteBankAccount(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !confirm('口座情報を削除しますか？')) return;
+  try{
+    await window._fbDb.collection('users').doc(user.uid).set({
+      bankName:'', bankBranch:'', bankType:'', bankNumber:'', bankHolder:''
+    },{ merge:true });
+    showToast('削除しました', '#333');
+    openBankRegister();
+  }catch(e){ showToast('⚠️ 削除に失敗しました', 'var(--accent)'); }
+}
+
+// ══ 支払い方法 ══
+function openPaymentMethod(){ goTo('paymentMethod'); }
+
+// ══ ガイド・お問い合わせ ══
+function openGuide(){
+  // FAQ描画
+  const faqs = [
+    {q:'手数料はいくらですか？', a:'売上金の3.5%です。例えば100万円で売れると手数料は35,000円、受取金額は965,000円です。'},
+    {q:'支払い方法は？', a:'クレジットカード・デビットカードに対応予定です。'},
+    {q:'車の引き渡し方法は？', a:'出品者と購入者が直接やり取りするか、提携陸送サービスをご利用いただけます。'},
+    {q:'評価システムはありますか？', a:'購入完了後、お互いに評価できます。高評価の出品者には「優良出品者」バッジが付きます。'},
+    {q:'不正なユーザーがいた場合は？', a:'お問い合わせフォームからご報告ください。速やかに対応いたします。'},
+  ];
+  const el = document.getElementById('faqList');
+  if(el) el.innerHTML = faqs.map((f,i)=>`
+    <div style="border-bottom:.5px solid var(--border);">
+      <div onclick="toggleFaq(${i})" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;cursor:pointer;">
+        <span style="font-size:13px;font-weight:600;color:var(--text-primary);flex:1;padding-right:8px;">Q. ${f.q}</span>
+        <svg id="faqArr${i}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="faqAns${i}" style="display:none;font-size:12px;color:var(--text-secondary);line-height:1.7;padding:0 0 12px;">A. ${f.a}</div>
+    </div>`).join('');
+  // メールアドレス自動入力
+  const em = document.getElementById('inquiry_email');
+  if(em && window._fbAuth?.currentUser?.email) em.value = window._fbAuth.currentUser.email;
+}
+
+function toggleFaq(i){
+  const ans = document.getElementById('faqAns'+i);
+  const arr = document.getElementById('faqArr'+i);
+  if(!ans) return;
+  const open = ans.style.display !== 'none';
+  ans.style.display = open ? 'none' : 'block';
+  if(arr) arr.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+async function sendInquiry(){
+  const user = window._fbAuth?.currentUser;
+  const type  = document.getElementById('inquiry_type')?.value;
+  const body  = document.getElementById('inquiry_body')?.value?.trim();
+  const email = document.getElementById('inquiry_email')?.value?.trim();
+  if(!type||!body||!email){ showToast('⚠️ 全ての項目を入力してください', 'var(--accent)'); return; }
+  if(!window._fbDb){ showToast('⚠️ 送信に失敗しました', 'var(--accent)'); return; }
+  try{
+    await window._fbDb.collection('inquiries').add({
+      uid: user?.uid||'anonymous', email, type, body,
+      status:'open', createdAt: new Date().toISOString()
+    });
+    showToast('✓ お問い合わせを送信しました', 'var(--green)');
+    document.getElementById('inquiry_type').value = '';
+    document.getElementById('inquiry_body').value = '';
+  }catch(e){ showToast('⚠️ 送信に失敗しました', 'var(--accent)'); }
+}
+
+// ══ 出品一覧 ══
+async function loadMyListings(){
+  const user = window._fbAuth?.currentUser;
+  const el = document.getElementById('myListingsList');
+  if(!el) return;
+  if(!user){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">ログインしてください</div>'; return; }
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込み中...</div>';
+  try{
+    const snap = await window._fbDb.collection('listings').where('uid','==',user.uid).orderBy('createdAt','desc').get();
+    if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">出品した商品はありません</div>'; return; }
+    el.innerHTML = snap.docs.map(doc=>{
+      const d = doc.data();
+      const price = d.price ? '¥'+Number(d.price).toLocaleString('ja-JP') : '';
+      const sold = d.sold ? '<span style="background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;">SOLD</span>' : '';
+      return `<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);cursor:pointer;" onclick="currentCarId='${doc.id}';goTo('detail')">
+        <img src="${d.imgs?.[0]||''}" style="width:80px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;color:var(--text-muted);">${d.maker||''}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.name||''}${sold}</div>
+          <div style="font-family:var(--font-num);font-size:15px;font-weight:700;color:var(--accent);">${price}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込みに失敗しました</div>'; }
+}
+
+// ══ 購入一覧 ══
+async function loadMyPurchases(){
+  const user = window._fbAuth?.currentUser;
+  const el = document.getElementById('myPurchasesList');
+  if(!el) return;
+  if(!user){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">ログインしてください</div>'; return; }
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込み中...</div>';
+  try{
+    const snap = await window._fbDb.collection('transactions').where('buyerUid','==',user.uid).orderBy('createdAt','desc').get();
+    if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">購入した商品はありません</div>'; return; }
+    el.innerHTML = snap.docs.map(doc=>{
+      const d = doc.data();
+      const price = d.price ? '¥'+Number(d.price).toLocaleString('ja-JP') : '';
+      const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('ja-JP') : '';
+      return `<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);cursor:pointer;" onclick="currentCarId='${d.listingId}';goTo('detail')">
+        <img src="${d.img||''}" style="width:80px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg);">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.listingName||''}</div>
+          <div style="font-family:var(--font-num);font-size:15px;font-weight:700;color:var(--accent);">${price}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${date}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込みに失敗しました</div>'; }
+}
+
+// ══ 下書き一覧 ══
+async function loadMyDrafts(){
+  const user = window._fbAuth?.currentUser;
+  const el = document.getElementById('myDraftsList');
+  if(!el) return;
+  if(!user){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">ログインしてください</div>'; return; }
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込み中...</div>';
+  try{
+    const snap = await window._fbDb.collection('drafts').where('uid','==',user.uid).orderBy('updatedAt','desc').get();
+    if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">下書きはありません</div>'; return; }
+    el.innerHTML = snap.docs.map(doc=>{
+      const d = doc.data();
+      const date = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('ja-JP') : '';
+      return `<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);align-items:center;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${d.name||'無題'}</div>
+          <div style="font-size:11px;color:var(--text-muted);">最終更新: ${date}</div>
+        </div>
+        <button onclick="loadDraft('${doc.id}')" style="height:32px;padding:0 12px;border-radius:8px;background:var(--text-primary);color:#fff;border:none;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;">編集</button>
+      </div>`;
+    }).join('');
+  }catch(e){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">読み込みに失敗しました</div>'; }
+}
+
+async function loadDraft(docId){
+  try{
+    const doc = await window._fbDb.collection('drafts').doc(docId).get();
+    if(!doc.exists) return;
+    const d = doc.data();
+    const f = id => document.getElementById(id);
+    if(f('sell_name'))  f('sell_name').value  = d.name||'';
+    if(f('sell_price')) f('sell_price').value = d.price||'';
+    if(f('sell_desc'))  f('sell_desc').value  = d.description||'';
+    goTo('sell');
+    showToast('✓ 下書きを読み込みました', 'var(--green)');
+  }catch(e){ showToast('⚠️ 読み込みに失敗しました', 'var(--accent)'); }
+}
+
+// ══ トーク ══
+function openTalk(roomId){ openChat(roomId); }
+
 function timeAgo(date){
   const diff = (new Date() - date) / 1000;
   if(diff < 60) return 'たった今';
