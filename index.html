@@ -1210,14 +1210,14 @@ html{height:100%;}body{height:100%;margin:0;padding:0;background:var(--bg);font-
       <div class="launch-h">あなたのこだわりが、<br><span>価値になる。</span></div>
       <div class="launch-sub">カスタム車・パーツ専用フリマ</div>
       <div class="launch-btns">
-        <button class="launch-btn-main" onclick="goTo('onboard')">はじめる</button>
-        <button class="launch-btn-sub" onclick="goTo('login')">ログインはこちら</button>
+        <button class="launch-btn-main" onclick="launchNavigate('onboard')">はじめる</button>
+        <button class="launch-btn-sub" onclick="launchNavigate('login')">ログインはこちら</button>
       </div>
     </div>
     <div class="launch-terms">登録により利用規約・プライバシーポリシーに同意したものとみなします</div>
   </div>
 </div><!-- ══ ONBOARDING ══ -->
-<div class="screen" id="screenOnboard"><div class="ob-inner" id="obSlide"><img class="ob-img" id="obImg" src="https://images.unsplash.com/photo-1583267746897-2cf415887172?w=700&q=70" alt=""><div class="ob-num" id="obNum">01 / 03</div><div class="ob-title" id="obTitle">カスタムの価値を<br>正当に評価</div><div class="ob-desc" id="obDesc">業者査定では「改造」として減点されるカスタムを、車好き同士が正しく評価。グラインダータトゥーも、社外ホイールも、ここでは価値になります。</div><div class="ob-dots"><div class="ob-dot on" id="obDot0"></div><div class="ob-dot" id="obDot1"></div><div class="ob-dot" id="obDot2"></div></div><button class="ob-next" id="obNext" onclick="obAdvance()">次へ</button><div class="ob-skip" onclick="goTo('register')">スキップ</div></div>
+<div class="screen" id="screenOnboard"><div class="ob-inner" id="obSlide"><img class="ob-img" id="obImg" src="https://images.unsplash.com/photo-1583267746897-2cf415887172?w=700&q=70" alt=""><div class="ob-num" id="obNum">01 / 03</div><div class="ob-title" id="obTitle">カスタムの価値を<br>正当に評価</div><div class="ob-desc" id="obDesc">業者査定では「改造」として減点されるカスタムを、車好き同士が正しく評価。グラインダータトゥーも、社外ホイールも、ここでは価値になります。</div><div class="ob-dots"><div class="ob-dot on" id="obDot0"></div><div class="ob-dot" id="obDot1"></div><div class="ob-dot" id="obDot2"></div></div><button class="ob-next" id="obNext" onclick="obAdvance()">次へ</button><div class="ob-skip" onclick="launchNavigate('register')">スキップ</div></div>
 </div><!-- ══ 会員登録 ══ -->
 <div class="screen" id="screenRegister"><div class="auth-hdr"><button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">新規会員登録</span></div><div class="auth-scroll"><div class="auth-inner"><!-- SNS --><button class="auth-sns" onclick="alert('本番時：Firebase Auth でAppleログインが動作します')"><svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
       Appleで登録
@@ -1797,8 +1797,10 @@ function goBack(){
   if(screenStack.length<=1)return;
   screenStack.pop();
   const prev=screenStack[screenStack.length-1];
-  // 全画面リセット
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('slide-left','active'));
+  // 全画面リセット（launch以外）
+  document.querySelectorAll('.screen').forEach(s=>{
+    if(s.id !== 'screenLaunch') s.classList.remove('slide-left','active');
+  });
   // 前の画面IDを解決
   const extraMap={
     launch:'screenLaunch',onboard:'screenOnboard',
@@ -2083,7 +2085,7 @@ const obSlides=[
 let obStep=0;
 function obAdvance(){
   obStep++;
-  if(obStep>=obSlides.length){goTo('register');obStep=0;return;}
+  if(obStep>=obSlides.length){launchNavigate('register');obStep=0;return;}
   const s=obSlides[obStep];
   document.getElementById('obNum').textContent=s.num;
   document.getElementById('obTitle').textContent=s.title;
@@ -2117,10 +2119,39 @@ function validateReg(){
   const btn=document.getElementById('regBtn');
   if(btn)btn.disabled=!ok;
 }
+
+function launchNavigate(target){
+  // launch画面を隠す
+  var launch = document.getElementById('screenLaunch');
+  if(launch){
+    launch.style.display = 'none';
+    launch.classList.remove('screen-launch-default','active');
+  }
+  // 全screen非表示
+  document.querySelectorAll('.screen').forEach(function(s){
+    s.classList.remove('active','slide-left');
+    s.style.transform = '';
+  });
+  // 対象を表示
+  var map = {
+    'onboard':'screenOnboard',
+    'login':'screenLogin',
+    'register':'screenRegister'
+  };
+  var screenId = map[target];
+  if(screenId){
+    var el = document.getElementById(screenId);
+    if(el) el.classList.add('active');
+  }
+  screenStack = [target];
+  if(target === 'login') setTimeout(loadSavedLogin, 100);
+}
 function showHome(){
-  // screen-launch-defaultクラスを外してラウンチ画面を隠す
   const launch = document.getElementById('screenLaunch');
-  if(launch) launch.classList.remove('screen-launch-default');
+  if(launch){
+    launch.classList.remove('screen-launch-default','active');
+    launch.style.display = 'none';
+  }
   // 全画面のactiveをリセット
   document.querySelectorAll('.screen').forEach(s=>{
     s.style.transform = '';
@@ -2664,17 +2695,17 @@ goTo = function(target, carId){
   }
 
   if(extraMap[target]){
-    // launch画面を必ず非表示に
-    const launchEl = document.getElementById('screenLaunch');
-    if(launchEl){
-      launchEl.classList.remove('screen-launch-default','active');
-      launchEl.style.transform = 'translateX(-100%)';
-    }
-    // 全画面のインラインstyleをリセットしてclassで制御
+    // 全画面をリセット
     document.querySelectorAll('.screen').forEach(s=>{
       s.style.transform = '';
       s.classList.remove('active','slide-left');
     });
+    // launch画面を確実に非表示（forEachの後に設定）
+    const launchEl = document.getElementById('screenLaunch');
+    if(launchEl){
+      launchEl.classList.remove('screen-launch-default','active');
+      launchEl.style.display = 'none';
+    }
     // 対象画面を表示
     const nextEl = document.getElementById(extraMap[target]);
     if(nextEl){ nextEl.classList.add('active'); }
@@ -2682,9 +2713,6 @@ goTo = function(target, carId){
     if(target === 'notif') renderNotif();
     if(target === 'bankRegister') openBankRegister();
     if(target === 'login'){
-      // launch画面も必ずhideする
-      const launchEl = document.getElementById('screenLaunch');
-      if(launchEl) launchEl.classList.remove('screen-launch-default','active');
       setTimeout(loadSavedLogin, 100);
     }
     if(target === 'addressEdit') openAddressEdit();
