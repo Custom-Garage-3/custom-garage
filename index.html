@@ -1161,7 +1161,51 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
   <div class="sort-option" onclick="applySort('year_old')">年式が古い順</div>
 </div><div class="scroll-area" onclick="closeSortIfOpen(event)"><p class="section-title" id="homeTitle">あなたへのおすすめ</p><div id="carGrid"></div></div><div class="bottom-nav"><div class="nav-item active" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>ホーム</span></div><div class="nav-item nav-sell" onclick="goTo('sell')"><div class="sell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg></div><span>出品</span></div><div class="nav-item" onclick="goTo('fav')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>お気に入り</span></div><div class="nav-item" onclick="goTo('talkList')" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="notif-badge" id="talkNavBadge" style="display:none;"></div><span>トーク</span></div><div class="nav-item" onclick="goTo('mypage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>マイページ</span></div></div>
 </div><!-- ══════════ DETAIL ══════════ -->
-<div class="screen" id="screenDetail"><div class="detail-header"><button class="btn-back" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="detail-header-title" id="detailHeaderTitle"></span></div><div class="detail-scroll" id="detailScroll"><img class="detail-hero" id="detailHero" src="" alt=""><div class="thumb-row" id="thumbRow"></div><div class="detail-body"><div class="detail-maker-row"><span class="detail-maker" id="detailMaker" onclick="openDetailSellerProfile()" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;"></span><div class="detail-badge-row" id="detailBadges"></div></div><div class="detail-name" id="detailName"></div><div class="detail-price" id="detailPrice"></div><div class="detail-cashback" id="detailCashback"></div><div class="detail-tags" id="detailTags"></div><div class="detail-divider"></div><div class="spec-title">車両スペック</div><table class="spec-table" id="detailSpec"></table><div class="desc-title">出品者コメント</div><div class="desc-text" id="detailDesc"></div></div></div><div class="detail-bottom"><button class="btn-fav-detail" id="btnFavDetail" onclick="toggleFavDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button><button class="btn-buy" onclick="openPreTalk()">購入手続きへ進む →</button></div>
+<div class="screen" id="screenDetail"><div class="detail-header"><button class="btn-back" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="detail-header-title" id="detailHeaderTitle"></span></div><div class="detail-scroll" id="detailScroll"><img class="detail-hero" id="detailHero" src="" alt=""><div class="thumb-row" id="thumbRow"></div><div class="detail-body"><div class="detail-maker-row"><span class="detail-maker" id="detailMaker" onclick="openDetailSellerProfile()" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;"></span><div class="detail-badge-row" id="detailBadges"></div></div><div class="detail-name" id="detailName"></div><div class="detail-price" id="detailPrice"></div><div class="detail-cashback" id="detailCashback"></div><div class="detail-tags" id="detailTags"></div><div class="detail-divider"></div><div class="spec-title">車両スペック</div><table class="spec-table" id="detailSpec"></table><div class="desc-title">出品者コメント</div><div class="desc-text" id="detailDesc"></div></div>
+
+<!-- ── 出品者情報 ── -->
+<div id="detailSellerSection" style="margin:0;padding:16px;background:var(--surface);border-top:8px solid var(--bg);">
+  <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">出品者情報</div>
+  <div style="display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="openDetailSellerProfile()">
+    <img id="detailSellerAvatar" src="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0;">
+    <div style="flex:1;min-width:0;">
+      <div id="detailSellerName" style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:2px;"></div>
+      <div id="detailSellerRating" style="font-size:12px;color:var(--text-muted);"></div>
+      <div id="detailSellerCount" style="font-size:11px;color:var(--text-muted);margin-top:2px;"></div>
+    </div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+</div>
+
+<!-- ── 陸送サービス ── -->
+<div style="margin:0;padding:16px;background:var(--surface);border-top:8px solid var(--bg);">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+    <span style="font-size:16px;">🚛</span>
+    <span style="font-size:13px;font-weight:700;color:var(--text-primary);">提携陸送サービス</span>
+  </div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">提携陸送会社へ一括手配。出発地・到着地を入力して送信するだけで、運送手続きはすべてCUSTOM GARAGEがまとめて対応します。</div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">出発地（現在の車の所在地）</div>
+      <input id="transportFrom" type="text" placeholder="例：東京都渋谷区" style="width:100%;height:42px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);padding:0 12px;font-family:var(--font-body);font-size:14px;color:var(--text-primary);outline:none;box-sizing:border-box;">
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">到着地（納車先）</div>
+      <input id="transportTo" type="text" placeholder="例：大阪府大阪市" style="width:100%;height:42px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);padding:0 12px;font-family:var(--font-body);font-size:14px;color:var(--text-primary);outline:none;box-sizing:border-box;">
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">ご要望・メモ（任意）</div>
+      <textarea id="transportNote" placeholder="例：なるべく早めにお願いしたい、など" style="width:100%;height:72px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);padding:10px 12px;font-family:var(--font-body);font-size:13px;color:var(--text-primary);outline:none;resize:none;line-height:1.6;box-sizing:border-box;"></textarea>
+    </div>
+    <button onclick="submitTransportRequest()" style="width:100%;height:48px;border-radius:12px;background:linear-gradient(135deg,#1a56db,#1e40af);color:#fff;border:none;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+      陸送を申し込む
+    </button>
+  </div>
+  <div style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;line-height:1.6;">※ 申し込み後、担当者よりご連絡いたします。<br>陸送費用は車両代金と一括でご請求します。</div>
+</div>
+
+</div></div><div class="detail-bottom"><button class="btn-fav-detail" id="btnFavDetail" onclick="toggleFavDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button><button class="btn-buy" onclick="openPreTalk()">購入手続きへ進む →</button></div>
 </div><!-- ══════════ FAVORITES ══════════ -->
 <div class="screen" id="screenFav"><div class="fav-header"><span class="fav-header-title">お気に入り</span><span class="fav-count" id="favCount">0件</span></div><div class="fav-ctrl-bar"><button class="ctrl-btn active" id="favBtnGrid" onclick="favSetView('grid')"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>グリッド
     </button><button class="ctrl-btn" id="favBtnList" onclick="favSetView('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg>リスト
@@ -1823,6 +1867,93 @@ function closeSortIfOpen(e){if(document.getElementById('sortDropdown').classList
 // ══ HEART ══
 function toggleFav(e,id){e.stopPropagation();const btn=e.currentTarget;if(favorites.has(id))favorites.delete(id);else{favorites.add(id);triggerPop(btn);}const liked=favorites.has(id);btn.className='btn-heart'+(liked?' liked':'');btn.innerHTML=hSVG(liked);syncDetailFav(id,liked);saveFavoritesToFirestore();}
 
+
+// ── 詳細画面の出品者情報読み込み ──
+async function loadDetailSellerInfo(sellerId){
+  const DEFAULT_AVT_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23C8CDD4'/%3E%3Cellipse cx='50' cy='38' rx='18' ry='20' fill='%23E8EAED'/%3E%3C/svg%3E";
+  const avatarEl = document.getElementById('detailSellerAvatar');
+  const nameEl   = document.getElementById('detailSellerName');
+  const ratingEl = document.getElementById('detailSellerRating');
+  const countEl  = document.getElementById('detailSellerCount');
+  if(!avatarEl) return;
+
+  // デフォルト表示
+  avatarEl.src = DEFAULT_AVT_URL;
+  if(nameEl) nameEl.textContent = '読み込み中...';
+
+  if(!sellerId || !window._fbDb){ 
+    if(nameEl) nameEl.textContent = '出品者';
+    if(ratingEl) ratingEl.textContent = '';
+    return; 
+  }
+  try{
+    const doc = await window._fbDb.collection('users').doc(sellerId).get();
+    if(doc.exists){
+      const d = doc.data();
+      avatarEl.src = d.photoURL || DEFAULT_AVT_URL;
+      if(nameEl) nameEl.textContent = d.username || d.displayName || '出品者';
+      if(ratingEl) ratingEl.textContent = d.ratingCount > 0
+        ? `★ ${(d.rating||0).toFixed(1)}　（${d.ratingCount}件の評価）`
+        : '評価なし';
+      if(countEl) countEl.textContent = `出品 ${d.sellCount||0}件 ／ 取引 ${d.buyCount||0}件`;
+    } else {
+      if(nameEl) nameEl.textContent = '出品者';
+    }
+  }catch(e){
+    if(nameEl) nameEl.textContent = '出品者';
+  }
+}
+
+// ── 陸送申し込み ──
+async function submitTransportRequest(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ 
+    alert('陸送申し込みにはログインが必要です');
+    goTo('login');
+    return;
+  }
+  const from = document.getElementById('transportFrom')?.value?.trim();
+  const to   = document.getElementById('transportTo')?.value?.trim();
+  const note = document.getElementById('transportNote')?.value?.trim();
+  const listingId = document.getElementById('screenDetail')?.dataset?.listingId;
+  const sellerId  = document.getElementById('screenDetail')?.dataset?.sellerId;
+
+  if(!from){ alert('出発地を入力してください'); return; }
+  if(!to){   alert('到着地を入力してください');   return; }
+
+  const btn = event?.currentTarget || document.querySelector('[onclick="submitTransportRequest()"]');
+  if(btn){ btn.disabled=true; btn.textContent='送信中...'; }
+
+  try{
+    // 現在の車両情報
+    const car = carsData.find(c=>String(c.id)===String(listingId));
+
+    await window._fbDb.collection('transportRequests').add({
+      listingId: listingId || '',
+      listingName: car ? car.name : '',
+      listingPrice: car ? car.priceVal : 0,
+      sellerId: sellerId || '',
+      buyerId: user.uid,
+      buyerEmail: user.email || '',
+      from,
+      to,
+      note: note || '',
+      status: 'pending',   // pending → confirmed → shipped → delivered
+      createdAt: new Date().toISOString(),
+    });
+
+    // 入力欄をクリア
+    document.getElementById('transportFrom').value = '';
+    document.getElementById('transportTo').value   = '';
+    if(document.getElementById('transportNote')) document.getElementById('transportNote').value = '';
+
+    if(btn){ btn.disabled=false; btn.textContent='陸送を申し込む'; }
+    showToast('✓ 陸送申し込みを受け付けました。担当者よりご連絡します。', 'var(--green)', 'screenDetail');
+  }catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='陸送を申し込む'; }
+    alert('申し込みに失敗しました: '+e.message);
+  }
+}
 function openDetailSellerProfile(){
   const sid = document.getElementById('screenDetail').dataset.sellerId;
   if(sid) openUserProfile(sid);
@@ -1830,7 +1961,11 @@ function openDetailSellerProfile(){
 function syncDetailFav(id,liked){if(currentCarId!==id)return;const btn=document.getElementById('btnFavDetail');if(!btn)return;btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;}
 
 // ══ DETAIL ══
-function populateDetail(id){const car=carsData.find(c=>c.id===id||c.id===String(id)||String(c.id)===String(id));if(!car)return;document.getElementById('detailHeaderTitle').textContent=car.name;const heroImg=document.getElementById('detailHero');heroImg.classList.add('img-loading');heroImg.src=car.img;heroImg.onload=()=>{heroImg.classList.remove('img-loading');heroImg.classList.add('img-loaded');};document.getElementById('detailMaker').textContent=car.maker;document.getElementById('detailBadges').innerHTML=(car.hosho?'<span class="detail-badge hosho">安心保証</span>':'')+(car.mine?'<span class="detail-badge mine-badge">出品中</span>':'');document.getElementById('detailName').textContent=car.name;document.getElementById('detailPrice').textContent=fmtP(car.priceVal);document.getElementById('detailCashback').textContent=fmtCB(car.priceVal);document.getElementById('detailTags').innerHTML=car.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('detailSpec').innerHTML=Object.entries(car.spec).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');document.getElementById('detailDesc').textContent=car.desc;document.getElementById('thumbRow').innerHTML=car.thumbs.map((s,i)=>`<img class="thumb${i===0?' active':''}" src="${s}" onclick="switchHero(this)">`).join('');const liked=favorites.has(id);const btn=document.getElementById('btnFavDetail');btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;document.getElementById('detailScroll').scrollTop=0; document.getElementById('screenDetail').dataset.sellerId = car.sellerId||'';
+function populateDetail(id){const car=carsData.find(c=>c.id===id||c.id===String(id)||String(c.id)===String(id));if(!car)return;document.getElementById('detailHeaderTitle').textContent=car.name;const heroImg=document.getElementById('detailHero');heroImg.classList.add('img-loading');heroImg.src=car.img;heroImg.onload=()=>{heroImg.classList.remove('img-loading');heroImg.classList.add('img-loaded');};document.getElementById('detailMaker').textContent=car.maker;document.getElementById('detailBadges').innerHTML=(car.hosho?'<span class="detail-badge hosho">安心保証</span>':'')+(car.mine?'<span class="detail-badge mine-badge">出品中</span>':'');document.getElementById('detailName').textContent=car.name;document.getElementById('detailPrice').textContent=fmtP(car.priceVal);document.getElementById('detailCashback').textContent=fmtCB(car.priceVal);document.getElementById('detailTags').innerHTML=car.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('detailSpec').innerHTML=Object.entries(car.spec).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');document.getElementById('detailDesc').textContent=car.desc;document.getElementById('thumbRow').innerHTML=car.thumbs.map((s,i)=>`<img class="thumb${i===0?' active':''}" src="${s}" onclick="switchHero(this)">`).join('');const liked=favorites.has(id);const btn=document.getElementById('btnFavDetail');btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;document.getElementById('detailScroll').scrollTop=0;
+  document.getElementById('screenDetail').dataset.sellerId = car.sellerId||'';
+  document.getElementById('screenDetail').dataset.listingId = String(car.id);
+  // 出品者情報を読み込み
+  loadDetailSellerInfo(car.sellerId);
   if(typeof addHistory==='function') addHistory(car);
 }
 function switchHero(el){document.getElementById('detailHero').src=el.src.replace('w=200','w=600');document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
