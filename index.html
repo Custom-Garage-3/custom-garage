@@ -3198,32 +3198,39 @@ async function doLogin(){
   // ローディング表示
   if(btn){ btn.disabled=true; btn.textContent='ログイン中...'; }
 
+  // ── STEP1: Firebase認証のみ ──
+  let userCredential;
   try{
-    const userCredential = await window._fbSignIn(window._fbAuth, email, password);
-    if(remember){
-      localStorage.setItem('cg_saved_login', JSON.stringify({email, password}));
-    } else {
-      localStorage.removeItem('cg_saved_login');
-    }
-    await loadUserProfile(userCredential.user.uid);
-    await loadFavoritesFromFirestore(userCredential.user.uid);
-    await loadGarageList();
-    subscribeRealtimeCounts(userCredential.user.uid);
-    if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
-    showHome();
+    userCredential = await window._fbSignIn(window._fbAuth, email, password);
   }catch(e){
     if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
-    console.log('Login error code:', e.code, e.message);
+    console.log('Auth error:', e.code, e.message);
     let msg = '⚠️ メールアドレスまたはパスワードが正しくありません';
     if(e.code === 'auth/too-many-requests') msg = '⚠️ ログイン試行が多すぎます。しばらく待ってください';
     if(e.code === 'auth/network-request-failed') msg = '⚠️ ネットワークエラーです。接続を確認してください';
-    if(e.code === 'auth/invalid-credential') msg = '⚠️ メールアドレスまたはパスワードが正しくありません';
+    if(e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password') msg = '⚠️ メールアドレスまたはパスワードが正しくありません';
     if(e.code === 'auth/user-not-found') msg = '⚠️ このメールアドレスは登録されていません';
-    if(e.code === 'auth/wrong-password') msg = '⚠️ パスワードが正しくありません';
     if(e.code === 'auth/invalid-email') msg = '⚠️ メールアドレスの形式が正しくありません';
-    if(e.code === 'auth/user-disabled') msg = '⚠️ このアカウントは無効化されています';
-    if(errEl){ errEl.textContent = msg + '（' + (e.code||'unknown') + '）'; errEl.style.display='block'; }
+    if(!e.code) msg = '⚠️ 通信エラーが発生しました。しばらく待ってから再試行してください（code: unknown）';
+    if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
+    return;
   }
+
+  // ── STEP2: ログイン成功後の処理（失敗してもホームへ遷移） ──
+  if(remember){
+    localStorage.setItem('cg_saved_login', JSON.stringify({email, password}));
+  } else {
+    localStorage.removeItem('cg_saved_login');
+  }
+  if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
+
+  // データ読み込みはエラーになっても続行
+  try{ await loadUserProfile(userCredential.user.uid); }catch(e){ console.log('profile err:', e); }
+  try{ await loadFavoritesFromFirestore(userCredential.user.uid); }catch(e){ console.log('fav err:', e); }
+  try{ await loadGarageList(); }catch(e){ console.log('garage err:', e); }
+  try{ subscribeRealtimeCounts(userCredential.user.uid); }catch(e){ console.log('count err:', e); }
+
+  showHome();
 }
 
 // ══ CHECKOUT ══
