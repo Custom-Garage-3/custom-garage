@@ -1183,6 +1183,16 @@ button, [onclick], .car-card, .fav-card, .talk-item, .nav-item,
 .chat-quick-btns::-webkit-scrollbar{display:none;}
 .chat-quick-btn{flex-shrink:0;height:30px;padding:0 12px;border-radius:15px;border:1.5px solid var(--border);background:var(--bg);font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;white-space:nowrap;touch-action:manipulation;}
 .chat-quick-btn:active{background:var(--accent-light);color:var(--accent);border-color:var(--accent);}
+
+/* ── iOS キーボード対応 ── */
+@supports (-webkit-touch-callout: none) {
+  .chat-input-bar {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .login-scroll, .auth-scroll, .pe-scroll, .sell-scroll {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
 </style>
 </head>
 <body>
@@ -1264,9 +1274,9 @@ button, [onclick], .car-card, .fav-card, .talk-item, .nav-item,
         </div><div class="flt-color-chip" data-color="その他" onclick="fltToggleColor(this)"><div class="flt-color-circle" style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);"></div>その他
         </div></div></div></div><div class="flt-bottom"><button class="flt-btn-search" onclick="fltApplyAndReturn()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:16px;height:16px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>この条件で検索する<span class="flt-hit-count" id="fltHitCount">（該当：5,210件）</span></button></div>
 </div><!-- ══════════ MYPAGE ══════════ -->
-<div class="screen" id="screenMypage"><div class="mp-hdr"><span class="mp-hdr-title">マイページ</span><div class="mp-hdr-gear" onclick="openProfileEdit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div></div><div class="mp-scroll"><div class="mp-inner"><!-- profile --><div class="mp-card mp-profile"><div class="mp-profile-top"><div class="mp-avatar-wrap"><img class="mp-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23C8CDD4'/%3E%3Cellipse cx='50' cy='38' rx='18' ry='20' fill='%23E8EAED'/%3E%3C/svg%3E" alt="avatar"><div class="mp-verified"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div></div><div><div class="mp-name" id="mpName">---</div><div class="mp-rating"><span class="mp-stars" id="mpStars">★ 0.0</span><span class="mp-rcount" id="mpRcount">評価 0件</span><span class="mp-rpill" id="mpRpill" style="display:none;">優良出品者</span></div></div></div><div class="mp-bio" style="color:var(--text-muted);">未設定 — プロフィールを編集して自己紹介を追加しましょう</div><div class="mp-divider"></div><div class="mp-stats"><div class="mp-stat" onclick="goTo('myListings')" style="cursor:pointer;"><span class="mp-stat-num" id="mpStatSell">0</span><span class="mp-stat-label">出品</span></div><div class="mp-stat" onclick="goTo('myPurchases')" style="cursor:pointer;"><span class="mp-stat-num" id="mpStatBuy">0</span><span class="mp-stat-label">購入</span></div><div class="mp-stat"><span class="mp-stat-num" id="mpStatRating">0</span><span class="mp-stat-label">評価</span></div><div class="mp-stat"><span class="mp-stat-num" id="mpStatScore">-</span><span class="mp-stat-label">評価点</span></div></div></div><!-- 銀行口座登録カード --><div class="mp-balance" id="mpBankCard" onclick="goTo('bankRegister')" style="cursor:pointer;flex-direction:column;gap:10px;padding:16px 20px;"><div style="display:flex;align-items:center;gap:10px;"><div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" style="width:20px;height:20px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div><div style="font-size:13px;font-weight:700;color:#fff;" id="mpBankTitle">振込先口座を登録する</div><div style="font-size:11px;color:rgba(255,255,255,.55);" id="mpBankSub">売上金の受取口座を設定してください</div></div><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;margin-left:auto;"><polyline points="9 18 15 12 9 6"/></svg></div></div><!-- garage --><div class="mp-card mp-garage"><div class="mp-garage-hdr"><div class="mp-garage-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>マイガレージ</div><span class="mp-garage-add" onclick="openGarageEdit(null)">＋ 愛車を追加</span></div><!-- 愛車リスト（Firestoreから動的に表示） --><div id="mpGarageList"><div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">愛車を登録しましょう！
+<div class="screen" id="screenMypage"><div class="mp-hdr"><span class="mp-hdr-title">マイページ</span><div class="mp-hdr-gear" onclick="openProfileEdit()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div></div><div class="mp-scroll"><div class="mp-inner"><!-- profile --><div class="mp-card mp-profile"><div class="mp-profile-top"><div class="mp-avatar-wrap" onclick="goTo('profileEdit')" style="cursor:pointer;" title="プロフィール写真を変更"><img class="mp-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23C8CDD4'/%3E%3Cellipse cx='50' cy='38' rx='18' ry='20' fill='%23E8EAED'/%3E%3C/svg%3E" alt="avatar"><div class="mp-verified"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div></div><div><div class="mp-name" id="mpName">---</div><div class="mp-rating"><span class="mp-stars" id="mpStars">★ 0.0</span><span class="mp-rcount" id="mpRcount">評価 0件</span><span class="mp-rpill" id="mpRpill" style="display:none;">優良出品者</span></div></div></div><div class="mp-bio" style="color:var(--text-muted);">未設定 — プロフィールを編集して自己紹介を追加しましょう</div><div class="mp-divider"></div><div class="mp-stats"><div class="mp-stat" onclick="goTo('myListings')" style="cursor:pointer;"><span class="mp-stat-num" id="mpStatSell">0</span><span class="mp-stat-label">出品</span></div><div class="mp-stat" onclick="goTo('myPurchases')" style="cursor:pointer;"><span class="mp-stat-num" id="mpStatBuy">0</span><span class="mp-stat-label">購入</span></div><div class="mp-stat"><span class="mp-stat-num" id="mpStatRating">0</span><span class="mp-stat-label">評価</span></div><div class="mp-stat"><span class="mp-stat-num" id="mpStatScore">-</span><span class="mp-stat-label">評価点</span></div></div></div><!-- 銀行口座登録カード --><div class="mp-balance" id="mpBankCard" onclick="goTo('bankRegister')" style="cursor:pointer;flex-direction:column;gap:10px;padding:16px 20px;"><div style="display:flex;align-items:center;gap:10px;"><div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" style="width:20px;height:20px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div><div style="font-size:13px;font-weight:700;color:#fff;" id="mpBankTitle">振込先口座を登録する</div><div style="font-size:11px;color:rgba(255,255,255,.55);" id="mpBankSub">売上金の受取口座を設定してください</div></div><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;margin-left:auto;"><polyline points="9 18 15 12 9 6"/></svg></div></div><!-- garage --><div class="mp-card mp-garage"><div class="mp-garage-hdr"><div class="mp-garage-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>マイガレージ</div><span class="mp-garage-add" onclick="openGarageEdit(null)">＋ 愛車を追加</span></div><!-- 愛車リスト（Firestoreから動的に表示） --><div id="mpGarageList"><div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">愛車を登録しましょう！
         </div></div></div><!-- txn grid --><div class="mp-card mp-txn"><div class="mp-txn-title">出品・取引</div><div class="mp-txn-grid"><div class="mp-txn-item" onclick="goTo('myListings')"><div class="mp-txn-icon" class="icon-red"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg></div><div class="mp-txn-label">出品した商品</div><div class="mp-txn-count" id="myListingCount">0件</div></div><div class="mp-txn-item" onclick="goTo('myPurchases')"><div class="mp-txn-icon" class="icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div><div class="mp-txn-label">購入した商品</div><div class="mp-txn-count" id="myPurchaseCount">0件</div></div><div class="mp-txn-item" onclick="goTo('myDrafts')"><div class="mp-txn-icon" class="icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="mp-txn-label">下書き一覧</div><div class="mp-txn-count" id="myDraftCount">0件</div></div><div class="mp-txn-item" onclick="goTo('history')"><div class="mp-txn-icon" class="icon-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="mp-txn-label">閲覧履歴</div><div class="mp-txn-count" id="historyCount">0件</div></div></div></div><!-- settings --><div class="mp-card mp-settings"><div class="mp-settings-title">設定・サービス</div><div class="mp-settings-item"><div class="mp-settings-icon" class="icon-red"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div style="flex:1"><div class="mp-settings-label">保存した検索条件</div><div class="mp-settings-sub">未設定</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="mp-settings-item" onclick="goTo('paymentMethod')"><div class="mp-settings-icon" class="icon-green"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div style="flex:1"><div class="mp-settings-label">支払い方法の設定</div><div class="mp-settings-sub" id="mpPaymentSub">未登録</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="mp-settings-item" onclick="goTo('addressEdit')"><div class="mp-settings-icon" class="icon-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div style="flex:1"><div class="mp-settings-label">お届け先・発送元住所</div><div class="mp-settings-sub" id="mpAddressSub">未登録</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="mp-settings-item" onclick="goTo('bankRegister')"><div class="mp-settings-icon" class="icon-amber"><svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div style="flex:1"><div class="mp-settings-label">振込先口座の設定</div><div class="mp-settings-sub" id="mpBankSettingSub">未登録</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="mp-settings-item" onclick="requestPushPermission()"><div class="mp-settings-icon" style="background:#FEF3C7;"><svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div><div style="flex:1"><div class="mp-settings-label">プッシュ通知</div><div class="mp-settings-sub" id="mpNotifSub">タップして有効化</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>
-<div class="mp-settings-item" onclick="goTo('guide')"><div class="mp-settings-icon" class="icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1"><div class="mp-settings-label">ガイド・お問い合わせ</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div><button id="adminBtn" onclick="openAdmin()" style="display:none;width:calc(100% - 32px);margin:0 16px 8px;height:44px;border-radius:14px;background:linear-gradient(135deg,#1a56db,#1e40af);color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;">⚙️ 管理画面</button><button class="mp-logout" onclick="doLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>ログアウト</button></div></div><div class="bottom-nav"><div class="nav-item" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>ホーム</span></div><div class="nav-item nav-sell" onclick="goTo('sell')"><div class="sell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg></div><span>出品</span></div><div class="nav-item" onclick="goTo('fav')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>お気に入り</span></div><div class="nav-item" onclick="goTo('talkList')" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="notif-badge" id="talkNavBadge" style="display:none;"></div><span>トーク</span></div><div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>マイページ</span></div></div>
+<div class="mp-settings-item" onclick="goTo('guide')"><div class="mp-settings-icon" class="icon-gray"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1"><div class="mp-settings-label">ガイド・お問い合わせ</div></div><div class="mp-settings-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div><button id="adminBtn" onclick="openAdmin()" style="display:none;width:calc(100% - 32px);margin:0 16px 8px;height:44px;border-radius:14px;background:linear-gradient(135deg,#1a56db,#1e40af);color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;">⚙️ 管理画面</button><button class="mp-logout" onclick="confirmLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>ログアウト</button></div></div><div class="bottom-nav"><div class="nav-item" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>ホーム</span></div><div class="nav-item nav-sell" onclick="goTo('sell')"><div class="sell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg></div><span>出品</span></div><div class="nav-item" onclick="goTo('fav')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>お気に入り</span></div><div class="nav-item" onclick="goTo('talkList')" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="notif-badge" id="talkNavBadge" style="display:none;"></div><span>トーク</span></div><div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>マイページ</span></div></div>
 </div><!-- ══ LAUNCH ══ -->
 <div class="screen screen-launch-default" id="screenLaunch">
   <div class="launch-orb-a"></div>
@@ -1380,7 +1390,7 @@ button, [onclick], .car-card, .fav-card, .talk-item, .nav-item,
           <input type="checkbox" id="login_remember" style="width:16px;height:16px;accent-color:#A855F7;flex-shrink:0;">
           <span style="font-size:12px;color:rgba(255,255,255,.5);">ログイン情報を保存</span>
         </label>
-        <div style="font-size:12px;color:#C084FC;font-weight:600;cursor:pointer;">パスワードを忘れた方</div>
+        <div style="font-size:12px;color:#C084FC;font-weight:600;cursor:pointer;touch-action:manipulation;" onclick="openForgotPassword()">パスワードを忘れた方</div>
       </div>
 
       <!-- エラー -->
@@ -2389,7 +2399,7 @@ function syncDetailFav(id,liked){if(currentCarId!==id)return;const btn=document.
 function populateDetail(id){const car=carsData.find(c=>c.id===id||c.id===String(id)||String(c.id)===String(id));if(!car)return;document.getElementById('detailHeaderTitle').textContent=car.name;const heroImg=document.getElementById('detailHero');heroImg.classList.add('img-loading');heroImg.src=car.img;heroImg.onload=()=>{heroImg.classList.remove('img-loading');heroImg.classList.add('img-loaded');}; heroImg.onclick=()=>openPhotoViewer(heroImg.src); heroImg.style.cursor='zoom-in';document.getElementById('detailMaker').textContent=car.maker;document.getElementById('detailBadges').innerHTML=(car.hosho?'<span class="detail-badge hosho">安心保証</span>':'')+(car.mine?'<span class="detail-badge mine-badge">出品中</span>':'');document.getElementById('detailName').textContent=car.name;document.getElementById('detailPrice').textContent=fmtP(car.priceVal);document.getElementById('detailCashback').textContent=fmtCB(car.priceVal);
   // 出品経過時間
   const agoEl = document.getElementById('detailAgo');
-  if(agoEl) agoEl.textContent = car.postedAt ? '出品 ' + timeAgo(car.postedAt) : '';document.getElementById('detailTags').innerHTML=car.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('detailSpec').innerHTML=Object.entries(car.spec).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');document.getElementById('detailDesc').textContent=car.desc;document.getElementById('thumbRow').innerHTML=car.thumbs.map((s,i)=>`<img class="thumb${i===0?' active':''}" src="${s}" onclick="switchHero(this)">`).join('');const liked=favorites.has(id);const btn=document.getElementById('btnFavDetail');btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;document.getElementById('detailScroll').scrollTop=0; addToHistory(id);
+  if(agoEl) agoEl.textContent = car.postedAt ? '出品 ' + timeAgo(car.postedAt) : '';document.getElementById('detailTags').innerHTML=car.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('detailSpec').innerHTML=Object.entries(car.spec).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');document.getElementById('detailDesc').textContent=car.desc;document.getElementById('thumbRow').innerHTML=car.thumbs.map((s,i)=>`<img class="thumb${i===0?' active':''}" src="${s}" onclick="switchHero(this)" ondblclick="openPhotoViewer('${s}')" style="cursor:pointer;">`).join('');const liked=favorites.has(id);const btn=document.getElementById('btnFavDetail');btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;document.getElementById('detailScroll').scrollTop=0; addToHistory(id);
   document.getElementById('screenDetail').dataset.sellerId = car.sellerId||'';
   document.getElementById('screenDetail').dataset.listingId = String(car.id);
   // 出品者情報を読み込み
@@ -3066,6 +3076,7 @@ async function doVerifyCode(){
         btn.innerHTML = '認証して登録を完了する';
         btn.disabled = false;
         await loadGarageList();
+        try{ if(window._fbAuth?.currentUser) subscribeRealtimeCounts(window._fbAuth.currentUser.uid); }catch(e){}
         showHome();
       }, 1200);
 
@@ -3178,6 +3189,36 @@ function loadSavedLogin(){
   }catch(e){}
 }
 
+
+// ━━ パスワードリセット ━━
+async function openForgotPassword(){
+  const email = document.getElementById('login_email')?.value?.trim();
+  const inputEmail = email || prompt('登録済みのメールアドレスを入力してください');
+  if(!inputEmail) return;
+  if(!window._fbAuth) return;
+  try{
+    await window._fbAuth.sendPasswordResetEmail(inputEmail);
+    showToast('✓ パスワードリセットメールを送信しました。メールをご確認ください。', 'var(--green)');
+  }catch(e){
+    let msg = 'メールの送信に失敗しました';
+    if(e.code === 'auth/user-not-found') msg = 'このメールアドレスは登録されていません';
+    if(e.code === 'auth/invalid-email') msg = 'メールアドレスの形式が正しくありません';
+    showToast('⚠️ ' + msg, 'var(--accent)');
+  }
+}
+
+function updateSellFee(){
+  const val = parseInt(document.getElementById('sell_price')?.value?.replace(/[^0-9]/g,'')||'0');
+  const el = document.getElementById('sellFeeDisplay');
+  if(el && val > 0){
+    const fee = Math.round(val * 0.035);
+    const net = val - fee;
+    el.textContent = `手数料 ¥${fee.toLocaleString('ja-JP')}（3.5%）→ 受取 ¥${net.toLocaleString('ja-JP')}`;
+    el.style.display = 'block';
+  } else if(el){
+    el.style.display = 'none';
+  }
+}
 async function doLogin(){
   const email    = document.getElementById('login_email')?.value?.trim();
   const password = document.getElementById('login_pw')?.value;
@@ -3487,6 +3528,21 @@ function timeAgo(date){
 }
 
 // ── ログアウト ──
+
+function confirmLogout(){
+  const sheet = document.createElement('div');
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;';
+  sheet.innerHTML = `
+    <div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 16px 40px;">
+      <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+      <div style="font-size:16px;font-weight:700;color:var(--text-primary);text-align:center;margin-bottom:8px;">ログアウト</div>
+      <div style="font-size:13px;color:var(--text-muted);text-align:center;margin-bottom:24px;">ログアウトしますか？</div>
+      <button onclick="doLogout();this.closest('[style]').remove()" style="width:100%;height:50px;border-radius:14px;background:var(--accent);color:#fff;border:none;font-family:var(--font-body);font-size:15px;font-weight:700;cursor:pointer;touch-action:manipulation;">ログアウト</button>
+      <button onclick="this.closest('[style]').remove()" style="width:100%;height:44px;border-radius:14px;background:none;border:1.5px solid var(--border);color:var(--text-secondary);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;touch-action:manipulation;">キャンセル</button>
+    </div>`;
+  sheet.onclick = e => { if(e.target===sheet) sheet.remove(); };
+  document.body.appendChild(sheet);
+}
 async function doLogout(){
   _countUnsubscribes.forEach(fn => fn());
   _countUnsubscribes = [];
@@ -3508,7 +3564,7 @@ async function doLogout(){
     const bioEl = document.querySelector('.mp-bio');
     if(bioEl) bioEl.textContent = '';
     const mpAvatar = document.querySelector('.mp-avatar');
-    if(mpAvatar) mpAvatar.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&q=80';
+    if(mpAvatar) mpAvatar.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23C8CDD4'/%3E%3Cellipse cx='50' cy='38' rx='18' ry='20' fill='%23E8EAED'/%3E%3Cellipse cx='50' cy='85' rx='30' ry='22' fill='%23E8EAED'/%3E%3C/svg%3E";
     ['mpStatSell','mpStatBuy','mpStatRating','mpStatScore','mpBalance','mpPoints'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.textContent='0';
     });
@@ -3650,7 +3706,7 @@ function renderChatMsgs(roomId){
   });
   el.innerHTML = html;
   // 最下部にスクロール
-  setTimeout(()=>{ el.scrollTop = el.scrollHeight; }, 50);
+  requestAnimationFrame(()=>{ el.scrollTop = el.scrollHeight; });
 }
 
 let _chatUnsubscribe = null; // リアルタイムリスナー解除用
@@ -4015,6 +4071,65 @@ if('serviceWorker' in navigator){
       .then(r=>{})
       .catch(e=>console.log('SW error:', e));
   });
+}
+
+// ━━ プルトゥリフレッシュ ━━
+(function(){
+  let startY = 0, pulling = false;
+  const threshold = 80;
+
+  function onTouchStart(e){
+    const el = document.getElementById('carGrid')?.closest('.scroll-area');
+    if(!el) return;
+    if(el.scrollTop === 0) startY = e.touches[0].clientY;
+  }
+
+  function onTouchMove(e){
+    if(!startY) return;
+    const el = document.getElementById('carGrid')?.closest('.scroll-area');
+    if(!el || el.scrollTop > 0) return;
+    const dy = e.touches[0].clientY - startY;
+    if(dy > 10) pulling = true;
+  }
+
+  function onTouchEnd(e){
+    if(!startY) return;
+    const el = document.getElementById('carGrid')?.closest('.scroll-area');
+    if(!el) return;
+    const dy = (e.changedTouches[0]?.clientY || 0) - startY;
+    if(pulling && dy > threshold){
+      // リフレッシュ実行
+      const title = document.getElementById('homeTitle');
+      if(title){ title.textContent = '更新中...'; }
+      loadListings().then(()=>{
+        if(title) title.textContent = 'あなたへのおすすめ';
+      });
+    }
+    startY = 0;
+    pulling = false;
+  }
+
+  document.addEventListener('touchstart', onTouchStart, {passive:true});
+  document.addEventListener('touchmove', onTouchMove, {passive:true});
+  document.addEventListener('touchend', onTouchEnd, {passive:true});
+})();
+
+// ━━ トースト通知 ━━
+function showToast(msg, color, screenId){
+  const host = screenId ? document.getElementById(screenId) : document.querySelector('.screen.active') || document.body;
+  // 既存のトーストを削除
+  host.querySelectorAll('.app-toast').forEach(t=>t.remove());
+  const toast = document.createElement('div');
+  toast.className = 'app-toast';
+  toast.textContent = msg;
+  toast.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:${color||'#333'};color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:90vw;text-align:center;`;
+  document.body.appendChild(toast);
+  // フェードアウト
+  setTimeout(()=>{
+    toast.style.transition = 'opacity .3s';
+    toast.style.opacity = '0';
+    setTimeout(()=>toast.remove(), 300);
+  }, 2500);
 }
 </script>
 </body>
