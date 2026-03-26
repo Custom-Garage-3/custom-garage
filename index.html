@@ -69,8 +69,20 @@
   --border:#E8E7E3; --header-h:108px; --ctrl-h:46px; --nav-h:64px;
   --font-body:'Noto Sans JP',sans-serif; --font-num:'DM Sans',sans-serif;
 }
-html,body{height:100%;background:#242424;display:flex;justify-content:center;align-items:center;font-family:var(--font-body);}
-.phone{--sat:44px;--sab:26px;width:390px;height:844px;background:var(--bg);position:relative;overflow:hidden;border-radius:54px;box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.1) inset;}
+html,body{height:100%;margin:0;padding:0;background:var(--bg);font-family:var(--font-body);overflow:hidden;}
+.phone{
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  width:100%;
+  width:100vw;
+  height:100%;
+  height:100dvh;
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+  border-radius:0;
+  box-shadow:none;
+}
 
 /* ═══════════ SCREEN SYSTEM ═══════════ */
 .screen{position:absolute;inset:0;transform:translateX(100%);transition:transform .28s cubic-bezier(.25,0.46,0.45,0.94);background:var(--bg);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
@@ -1143,6 +1155,27 @@ html,body{height:100%;background:#242424;display:flex;justify-content:center;ali
 /* ガレージチップ アコーディオン */
 .flt-acc-hdr{transition:background .1s;-webkit-tap-highlight-color:transparent;}
 .flt-acc-hdr:active{background:var(--bg);}
+
+/* ── タブレット・PC対応 ── */
+@media (min-width: 600px) {
+  html, body {
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+  }
+  .phone {
+    width: 430px !important;
+    max-width: 430px;
+    height: 100dvh;
+    box-shadow: 0 0 60px rgba(0,0,0,.8);
+  }
+}
+@media (min-width: 900px) {
+  .phone {
+    height: 100vh;
+  }
+}
 </style>
 </head>
 <body>
@@ -2504,16 +2537,23 @@ async function doLogin(){
   const password = document.getElementById('login_pw')?.value;
   const remember = document.getElementById('login_remember')?.checked;
   const errEl = document.getElementById('loginErr');
-  if(!email||!password){if(errEl)errEl.style.display='block';return;}
-  if(errEl)errEl.style.display='none';
-  if(!window._fbSignIn||!window._fbAuth){
-    alert('初期化中です。少し待ってから再度お試しください。');
+  const btn  = document.querySelector('#screenLogin .login-btn');
+
+  if(!email || !password){
+    if(errEl){ errEl.textContent = '⚠️ メールアドレスとパスワードを入力してください'; errEl.style.display='block'; }
     return;
   }
+  if(errEl) errEl.style.display='none';
+  if(!window._fbSignIn || !window._fbAuth){
+    if(errEl){ errEl.textContent = '⚠️ 初期化中です。少し待ってから再試行してください'; errEl.style.display='block'; }
+    return;
+  }
+
+  // ローディング表示
+  if(btn){ btn.disabled=true; btn.textContent='ログイン中...'; }
+
   try{
     const userCredential = await window._fbSignIn(window._fbAuth, email, password);
-    console.log('ログイン成功:', userCredential.user.email);
-    // ログイン情報を保存
     if(remember){
       localStorage.setItem('cg_saved_login', JSON.stringify({email, password}));
     } else {
@@ -2522,9 +2562,14 @@ async function doLogin(){
     await loadUserProfile(userCredential.user.uid);
     await loadFavoritesFromFirestore(userCredential.user.uid);
     await loadGarageList();
+    if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
     showHome();
   }catch(e){
-    if(errEl)errEl.style.display='block';
+    if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
+    let msg = '⚠️ メールアドレスまたはパスワードが正しくありません';
+    if(e.code === 'auth/too-many-requests') msg = '⚠️ ログイン試行が多すぎます。しばらく待ってください';
+    if(e.code === 'auth/network-request-failed') msg = '⚠️ ネットワークエラーです。接続を確認してください';
+    if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
   }
 }
 
@@ -2653,7 +2698,12 @@ goTo = function(target, carId){
     screenStack.push(target);
     if(target === 'notif') renderNotif();
     if(target === 'bankRegister') openBankRegister();
-    if(target === 'login') setTimeout(loadSavedLogin, 100);
+    if(target === 'login'){
+      // launch画面も必ずhideする
+      const launchEl = document.getElementById('screenLaunch');
+      if(launchEl) launchEl.classList.remove('screen-launch-default','active');
+      setTimeout(loadSavedLogin, 100);
+    }
     if(target === 'addressEdit') openAddressEdit();
     if(target === 'myListings') loadMyListings();
     if(target === 'myPurchases') loadMyPurchases();
