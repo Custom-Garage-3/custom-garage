@@ -1450,6 +1450,7 @@ html{height:100%;}body{height:100%;margin:0;padding:0;background:var(--bg);font-
 </div></div><!-- /phone-frame -->
 <script>
 // ══ DATA ══
+const DEFAULT_AVT="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23C8CDD4'/%3E%3Cellipse cx='50' cy='38' rx='18' ry='20' fill='%23E8EAED'/%3E%3C/svg%3E";
 let carsData=[];
 
 // Firestoreから出品一覧を読み込む
@@ -4132,7 +4133,7 @@ async function loadTalkList(){
   el.innerHTML = TALK_ROOMS.map(r => `
     <div class="talk-item${(r.unread||0)>0?' unread':''}" onclick="openChat('${r.id}')">
       <div class="talk-avatar-wrap">
-        <img class="talk-avatar" src="${r.avatar || 'data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 100\\'%3E%3Ccircle cx=\\'50\\' cy=\\'50\\' r=\\'50\\' fill=\\'%23C8CDD4\\'/%3E%3C/svg%3E'}" alt="${r.name}">
+        <img        <img class="talk-avatar" src="${r.avatar || DEFAULT_AVT}" alt="${r.name}">
         ${r.carImg ? `<img class="talk-car-thumb" src="${r.carImg}" alt="">` : ''}
       </div>
       <div class="talk-body">
