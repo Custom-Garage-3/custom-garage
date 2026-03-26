@@ -73,7 +73,7 @@ html,body{height:100%;background:#242424;display:flex;justify-content:center;ali
 .phone{--sat:44px;--sab:26px;width:390px;height:844px;background:var(--bg);position:relative;overflow:hidden;border-radius:54px;box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.1) inset;}
 
 /* ═══════════ SCREEN SYSTEM ═══════════ */
-.screen{position:absolute;inset:0;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);background:var(--bg);will-change:transform;}
+.screen{position:absolute;inset:0;transform:translateX(100%);transition:transform .28s cubic-bezier(.25,0.46,0.45,0.94);background:var(--bg);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 .screen.active{transform:translateX(0);}
 .screen.slide-left{transform:translateX(-30%);}
 /* ラウンチ画面はJSなしで最初から表示 */
@@ -996,11 +996,158 @@ html,body{height:100%;background:#242424;display:flex;justify-content:center;ali
   cursor:pointer;white-space:nowrap;
 }
 
+
+/* ── スケルトンローディング ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--surface) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+.skel-card{background:var(--surface);border-radius:12px;overflow:hidden;}
+.skel-img{width:100%;aspect-ratio:4/3;background:linear-gradient(90deg,var(--border) 25%,var(--surface) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+.skel-line{height:12px;border-radius:4px;margin:6px 8px;background:linear-gradient(90deg,var(--border) 25%,var(--surface) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+.skel-line.short{width:55%;}
+.skel-line.shorter{width:35%;}
+/* ── 画像フェードイン ── */
+.img-loading{opacity:0;}
+.img-loaded{opacity:1;}
+/* ── ボタンタッチフィードバック ── */
+.pretalk-overlay{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+
+/* ══ 今どきのモーション ══ */
+
+/* リップルエフェクト */
+.ripple-wrap{position:relative;overflow:hidden;}
+@keyframes ripple{
+  0%{transform:scale(0);opacity:.35;}
+  80%{transform:scale(2.5);opacity:.1;}
+  100%{transform:scale(2.5);opacity:0;}
+}
+.ripple-el{
+  position:absolute;border-radius:50%;
+  background:currentColor;
+  animation:ripple .55s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events:none;
+  width:60px;height:60px;margin:-30px 0 0 -30px;
+}
+
+/* スプリングスケール（ボタン系） */
+@keyframes springPress{
+  0%{transform:scale(1);}
+  40%{transform:scale(.93);}
+  70%{transform:scale(1.03);}
+  100%{transform:scale(1);}
+}
+@keyframes springPressLight{
+  0%{transform:scale(1);}
+  40%{transform:scale(.96);}
+  70%{transform:scale(1.015);}
+  100%{transform:scale(1);}
+}
+
+/* ナビアイテム */
+.nav-item{transition:opacity .15s;-webkit-tap-highlight-color:transparent;}
+.nav-item svg,.nav-item span{transition:transform .2s cubic-bezier(.34,1.56,.64,1),color .2s;}
+.nav-item.active svg{transform:scale(1.18);}
+.nav-item:active svg{transform:scale(.85);}
+
+/* カード */
+.car-card{
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.car-card:active{transform:scale(.95);}
+
+.fav-card{
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+  -webkit-tap-highlight-color:transparent;
+}
+.fav-card:active{transform:scale(.95);}
+
+/* トークリスト */
+.talk-item{transition:background .12s,transform .15s;-webkit-tap-highlight-color:transparent;}
+.talk-item:active{background:var(--bg) !important;transform:scale(.985);}
+
+/* メインボタン群 */
+.btn-buy,.pe-save-btn,.auth-btn,.sell-submit-btn,.flt-btn-search,.launch-btn,.login-btn{
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .15s,box-shadow .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-buy:active,.pe-save-btn:active,.auth-btn:active,.sell-submit-btn:active,
+.flt-btn-search:active,.launch-btn:active,.login-btn:active{
+  transform:scale(.95);opacity:.9;
+}
+
+/* ハートボタン */
+.btn-heart{transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.btn-heart:active{transform:scale(.8);}
+.btn-heart.liked svg{animation:heartBeat .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes heartBeat{
+  0%{transform:scale(1);}
+  30%{transform:scale(1.4);}
+  60%{transform:scale(.9);}
+  100%{transform:scale(1);}
+}
+
+/* お気に入りボタン（詳細） */
+.btn-fav-detail{transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.btn-fav-detail:active{transform:scale(.85);}
+
+/* コントロールボタン */
+.ctrl-btn{transition:transform .15s cubic-bezier(.34,1.56,.64,1),background .15s,color .15s;}
+.ctrl-btn:active{transform:scale(.93);}
+
+/* フィルターチップ */
+.flt-chip,.filter-chip,.garage-chip,.ctrl-btn{
+  -webkit-tap-highlight-color:transparent;
+}
+.flt-chip:active,.filter-chip:active,.garage-chip:active{transform:scale(.93);}
+
+/* 設定アイテム */
+.mp-settings-item{
+  transition:background .1s,transform .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.mp-settings-item:active{background:var(--bg);transform:scale(.99);}
+
+/* トークアイテム */
+.mp-txn-item{
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.mp-txn-item:active{transform:scale(.96);}
+
+/* バックボタン */
+.btn-back,.auth-back{
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-back:active,.auth-back:active{transform:scale(.85) translateX(-2px);}
+
+/* チャット送信ボタン */
+.chat-send-btn{
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.chat-send-btn:active{transform:scale(.85);}
+
+/* リアクションボタン */
+.lp-reaction-btn{transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+.lp-reaction-btn:active{transform:scale(1.3);}
+
+/* ソートオプション */
+.sort-option{transition:background .1s,color .1s;-webkit-tap-highlight-color:transparent;}
+.sort-option:active{background:var(--accent-light);color:var(--accent);}
+
+/* PE保存ボタン */
+.pe-save-btn{transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s;}
+.pe-save-btn:active{transform:scale(.95);}
+
+/* ガレージチップ アコーディオン */
+.flt-acc-hdr{transition:background .1s;-webkit-tap-highlight-color:transparent;}
+.flt-acc-hdr:active{background:var(--bg);}
 </style>
 </head>
 <body>
 <div class="phone" id="app"><!-- ══════════ HOME ══════════ -->
-<div class="screen" id="screenHome"><div class="header"><div class="search-bar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" placeholder="キーワードでさがす"></div></div><div class="control-bar"><button class="ctrl-btn active" id="btnGrid" onclick="setView('grid')"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>グリッド
+<div class="screen" id="screenHome"><div class="header"><div class="search-bar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" id="homeSearchInput" placeholder="キーワードでさがす" oninput="homeSearch(this.value)"></div></div><div class="control-bar"><button class="ctrl-btn active" id="btnGrid" onclick="setView('grid')"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>グリッド
     </button><button class="ctrl-btn" id="btnList" onclick="setView('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg>リスト
     </button><button class="ctrl-btn" id="btnFilter" onclick="goTo('filter')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>絞り込み
     </button><button class="ctrl-btn" style="margin-left:auto;" onclick="toggleSort()"><span id="sortLabel">新着順</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button></div><div class="sort-dropdown" id="sortDropdown">
@@ -1013,14 +1160,14 @@ html,body{height:100%;background:#242424;display:flex;justify-content:center;ali
   <div class="sort-option" onclick="applySort('year_old')">年式が古い順</div>
 </div><div class="scroll-area" onclick="closeSortIfOpen(event)"><p class="section-title" id="homeTitle">あなたへのおすすめ</p><div id="carGrid"></div></div><div class="bottom-nav"><div class="nav-item active" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>ホーム</span></div><div class="nav-item nav-sell" onclick="goTo('sell')"><div class="sell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg></div><span>出品</span></div><div class="nav-item" onclick="goTo('fav')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>お気に入り</span></div><div class="nav-item" onclick="goTo('talkList')" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="notif-badge" id="talkNavBadge" style="display:none;"></div><span>トーク</span></div><div class="nav-item" onclick="goTo('mypage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>マイページ</span></div></div>
 </div><!-- ══════════ DETAIL ══════════ -->
-<div class="screen" id="screenDetail"><div class="detail-header"><button class="btn-back" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="detail-header-title" id="detailHeaderTitle"></span></div><div class="detail-scroll" id="detailScroll"><img class="detail-hero" id="detailHero" src="" alt=""><div class="thumb-row" id="thumbRow"></div><div class="detail-body"><div class="detail-maker-row"><span class="detail-maker" id="detailMaker"></span><div class="detail-badge-row" id="detailBadges"></div></div><div class="detail-name" id="detailName"></div><div class="detail-price" id="detailPrice"></div><div class="detail-cashback" id="detailCashback"></div><div class="detail-tags" id="detailTags"></div><div class="detail-divider"></div><div class="spec-title">車両スペック</div><table class="spec-table" id="detailSpec"></table><div class="desc-title">出品者コメント</div><div class="desc-text" id="detailDesc"></div></div></div><div class="detail-bottom"><button class="btn-fav-detail" id="btnFavDetail" onclick="toggleFavDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button><button class="btn-buy" onclick="openPreTalk()">購入手続きへ進む →</button></div>
+<div class="screen" id="screenDetail"><div class="detail-header"><button class="btn-back" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="detail-header-title" id="detailHeaderTitle"></span></div><div class="detail-scroll" id="detailScroll"><img class="detail-hero" id="detailHero" src="" alt=""><div class="thumb-row" id="thumbRow"></div><div class="detail-body"><div class="detail-maker-row"><span class="detail-maker" id="detailMaker" onclick="openDetailSellerProfile()" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;"></span><div class="detail-badge-row" id="detailBadges"></div></div><div class="detail-name" id="detailName"></div><div class="detail-price" id="detailPrice"></div><div class="detail-cashback" id="detailCashback"></div><div class="detail-tags" id="detailTags"></div><div class="detail-divider"></div><div class="spec-title">車両スペック</div><table class="spec-table" id="detailSpec"></table><div class="desc-title">出品者コメント</div><div class="desc-text" id="detailDesc"></div></div></div><div class="detail-bottom"><button class="btn-fav-detail" id="btnFavDetail" onclick="toggleFavDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button><button class="btn-buy" onclick="openPreTalk()">購入手続きへ進む →</button></div>
 </div><!-- ══════════ FAVORITES ══════════ -->
 <div class="screen" id="screenFav"><div class="fav-header"><span class="fav-header-title">お気に入り</span><span class="fav-count" id="favCount">0件</span></div><div class="fav-ctrl-bar"><button class="ctrl-btn active" id="favBtnGrid" onclick="favSetView('grid')"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>グリッド
     </button><button class="ctrl-btn" id="favBtnList" onclick="favSetView('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/></svg>リスト
     </button><button class="ctrl-btn" id="favBtnFilter" onclick="openFavFilter()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>絞り込み
     </button><button class="ctrl-btn" style="margin-left:auto;" onclick="favToggleSort()"><span id="favSortLabel">新着順</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button></div><div class="fav-sort-dd" id="favSortDd"><div class="sort-option selected" onclick="favApplySort('new')">新着順</div><div class="sort-option" onclick="favApplySort('high')">高い順</div><div class="sort-option" onclick="favApplySort('low')">安い順</div></div><div class="fav-scroll" onclick="favCloseSortIfOpen(event)"><div id="favGrid" class="fav-grid-2col"></div></div><!-- fav filter modal --><div class="filter-overlay" id="filterOverlay" onclick="closeFilterOnBg(event)"><div class="filter-sheet"><div class="filter-handle"></div><div class="filter-title">絞り込み</div><div class="filter-section"><div class="filter-label">メーカー</div><div class="filter-chips" id="filterMakers"></div></div><div class="filter-section"><div class="filter-label">保証</div><div class="filter-chips"><div class="filter-chip" data-filter="hosho" onclick="toggleChip(this)">安心保証あり</div></div></div><div class="filter-section"><div class="filter-label">価格上限</div><div class="filter-range"><input type="range" id="priceRange" min="500000" max="4000000" step="100000" value="4000000" oninput="updatePriceLabel()"><span id="priceRangeLabel">上限なし</span></div></div><div class="filter-actions"><button class="btn-filter-reset" onclick="resetFilter()">リセット</button><button class="btn-filter-apply" onclick="applyFilter()">この条件で絞り込む</button></div></div></div><div class="bottom-nav"><div class="nav-item" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>ホーム</span></div><div class="nav-item nav-sell" onclick="goTo('sell')"><div class="sell-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg></div><span>出品</span></div><div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>お気に入り</span></div><div class="nav-item" onclick="goTo('talkList')" style="position:relative;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div class="notif-badge" id="talkNavBadge" style="display:none;"></div><span>トーク</span></div><div class="nav-item" onclick="goTo('mypage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>マイページ</span></div></div>
 </div><!-- ══════════ FILTER ══════════ -->
-<div class="screen" id="screenFilter"><div class="flt-hdr"><button class="flt-hdr-btn" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>戻る</button><span class="flt-hdr-title">絞り込み</span><button class="flt-hdr-btn flt-hdr-clear" onclick="fltClearAll()">クリア</button></div><div class="flt-body"><div class="flt-search-wrap"><div class="flt-search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" placeholder="キーワードからさがす"></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">メーカー・車種で探す<span class="flt-sel-badge" id="fltMakerBadge">0</span></span><span class="flt-total-badge">総掲載台数 511,506台</span></div><div class="flt-tabs"><div class="flt-tab active" onclick="fltSwitchTab('car',this)">車種</div><div class="flt-tab" onclick="fltSwitchTab('parts',this)">パーツ</div><div class="flt-tab" onclick="fltSwitchTab('history',this)">検索履歴</div></div><div class="flt-tab-panel active" id="fltPanel-car"><div class="flt-maker-grid" id="fltMakerGrid"></div><!-- 車種選択（メーカー選択後に表示） --><div id="fltModelArea" style="display:none;padding:0 12px 14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;font-weight:700;color:var(--text-primary);" id="fltModelLabel">車種を選択</span><span style="font-size:11px;color:var(--accent);cursor:pointer;" onclick="clearFltModels()">クリア</span></div><div style="display:flex;flex-wrap:wrap;gap:7px;" id="fltModelChips"></div></div></div><div class="flt-tab-panel" id="fltPanel-parts"><div class="flt-parts-grid"><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">⚙️</div><div class="flt-parts-name">エンジン系</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🛞</div><div class="flt-parts-name">ホイール</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">💨</div><div class="flt-parts-name">エアロ</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🔊</div><div class="flt-parts-name">オーディオ</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">📱</div><div class="flt-parts-name">ナビ・CarPlay</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">💡</div><div class="flt-parts-name">ライト</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🏎️</div><div class="flt-parts-name">サスペンション</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🎨</div><div class="flt-parts-name">塗装・ラッピング</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🪑</div><div class="flt-parts-name">内装・シート</div></div></div></div><div class="flt-tab-panel" id="fltPanel-history"><div class="flt-history"><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">日産 スカイライン カスタム</span><span class="flt-hist-del">削除</span></div><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">Toyota 86 社外マフラー</span><span class="flt-hist-del">削除</span></div><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">Mazda RX-7 FD3S</span><span class="flt-hist-del">削除</span></div><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">CarPlay換装済み</span><span class="flt-hist-del">削除</span></div></div></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">カスタム仕様で探す<span class="flt-sel-badge" id="fltCustomBadge">0</span></span></div><div id="fltCustomChips"><!-- 外装 --><div class="flt-acc open" id="fltAcc0"><div class="flt-acc-hdr" onclick="fltToggleAcc(0)"><div class="flt-acc-left"><span class="flt-acc-icon">🚗</span><span class="flt-acc-name">外装</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt0">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body open" id="fltAccBody0"><div class="flt-chip" onclick="fltToggleChip(this,'0')">フロントバンパー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">フロントリップ</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">リアバンパー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">リアディフューザー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">GTウイング</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">トランクスポイラー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">ワイドフェンダー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">オーバーフェンダー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">カーボンボンネット</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">カーボントランク</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">サイドスカート</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">アイライン</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">グリル交換</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">ドアミラーカバー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">フルエアロ</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">ラッピング</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">カスタムペイント</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">グラインダータトゥー</div></div></div><!-- 足回り --><div class="flt-acc" id="fltAcc1"><div class="flt-acc-hdr" onclick="fltToggleAcc(1)"><div class="flt-acc-left"><span class="flt-acc-icon">🛞</span><span class="flt-acc-name">足回り・ホイール</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt1">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody1"><div class="flt-chip" onclick="fltToggleChip(this,'1')">車高調</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">エアサス</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ローダウン</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">鍛造ホイール</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">深リム</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ホイールスペーサー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ワイドトレッドスペーサー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ビッグキャリパー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ブレーキパッド強化</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ステンレスブレーキライン</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">タワーバー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ロールケージ</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">強化スタビライザー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">アームピロ化</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">キャンバーボルト</div></div></div><!-- 吸排気 --><div class="flt-acc" id="fltAcc2"><div class="flt-acc-hdr" onclick="fltToggleAcc(2)"><div class="flt-acc-left"><span class="flt-acc-icon">💨</span><span class="flt-acc-name">吸排気・エンジン</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt2">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody2"><div class="flt-chip" onclick="fltToggleChip(this,'2')">スポーツマフラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">可変バルブマフラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ワンオフマフラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">フロントパイプ</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">触媒交換</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">キノコ型エアクリ</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ショートラムエアクリ</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">インタークーラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">タービン換装</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ターボキット</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">スーパーチャージャー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ECU書き換え</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">スロコン</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">エンジンオーバーホール</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">エンジンスワップ</div></div></div><!-- 内装 --><div class="flt-acc" id="fltAcc3"><div class="flt-acc-hdr" onclick="fltToggleAcc(3)"><div class="flt-acc-left"><span class="flt-acc-icon">🪑</span><span class="flt-acc-name">内装・シート</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt3">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody3"><div class="flt-chip" onclick="fltToggleChip(this,'3')">セミバケ</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">フルバケ</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">レカロシート</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">シートレール</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">内装張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">アルカンターラ張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">レザーシート</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">カーボンステアリング</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">ショートボス</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">シフトノブ交換</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">カーボンインテリア</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">ピラー張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">天張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">ロールバー</div></div></div><!-- 電装・AV --><div class="flt-acc" id="fltAcc4"><div class="flt-acc-hdr" onclick="fltToggleAcc(4)"><div class="flt-acc-left"><span class="flt-acc-icon">📱</span><span class="flt-acc-name">電装・AV・安全</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt4">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody4"><div class="flt-chip" onclick="fltToggleChip(this,'4')">CarPlay対応</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">テスラナビ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">大画面ナビ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">ドラレコ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">360度ドラレコ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">バックカメラ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">コーナーセンサー</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">ETC2.0</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">レーダー探知機</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">サブウーファー</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">オーディオ強化</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">アンバー照明</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">フットランプ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">シーケンシャルウインカー</div></div></div><!-- ライト --><div class="flt-acc" id="fltAcc5"><div class="flt-acc-hdr" onclick="fltToggleAcc(5)"><div class="flt-acc-left"><span class="flt-acc-icon">💡</span><span class="flt-acc-name">ライト・灯火類</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt5">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody5"><div class="flt-chip" onclick="fltToggleChip(this,'5')">LEDヘッドライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">HIDヘッドライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">プロジェクターライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">社外テールランプ</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">LEDテール</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">スモークテール</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">フォグランプ追加</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">デイライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">イカリング</div></div></div><!-- その他 --><div class="flt-acc" id="fltAcc6"><div class="flt-acc-hdr" onclick="fltToggleAcc(6)"><div class="flt-acc-left"><span class="flt-acc-icon">✨</span><span class="flt-acc-name">コンディション・その他</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt6">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody6"><div class="flt-chip" onclick="fltToggleChip(this,'6')">ワンオーナー</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">記録簿完備</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">禁煙車</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">車検整備済み</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">ガレージ保管</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">コーティング施工</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">領収書・証明書あり</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">サーキット走行歴なし</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">事故歴なし</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">修復歴なし</div></div></div></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">年式</span></div><div class="flt-range-row"><select class="flt-range-sel" id="fltYearFrom" onchange="fltRecalc()"><option value="">下限なし</option><option>1990年</option><option>1995年</option><option>2000年</option><option>2005年</option><option>2010年</option><option>2015年</option><option>2018年</option><option>2020年</option><option>2022年</option></select><span class="flt-range-sep">〜</span><select class="flt-range-sel" id="fltYearTo" onchange="fltRecalc()"><option value="">上限なし</option><option>2020年</option><option>2021年</option><option>2022年</option><option>2023年</option><option>2024年</option><option>2025年</option></select></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">価格</span></div><div class="flt-range-row"><select class="flt-range-sel" id="fltPriceFrom" onchange="fltRecalc()"><option value="">最低価格</option><option value="300000">¥300,000</option><option value="500000">¥500,000</option><option value="1000000">¥1,000,000</option><option value="1500000">¥1,500,000</option><option value="2000000">¥2,000,000</option><option value="3000000">¥3,000,000</option></select><span class="flt-range-sep">〜</span><select class="flt-range-sel" id="fltPriceTo" onchange="fltRecalc()"><option value="">最高価格</option><option value="500000">¥500,000</option><option value="1000000">¥1,000,000</option><option value="1500000">¥1,500,000</option><option value="2000000">¥2,000,000</option><option value="3000000">¥3,000,000</option><option value="5000000">¥5,000,000</option></select></div></div><div class="flt-sec" style="margin-bottom:0;"><div class="flt-sec-head"><span class="flt-sec-title">走行距離</span></div><div class="flt-range-row"><select class="flt-range-sel" id="fltKmFrom" onchange="fltRecalc()"><option value="">0km〜</option><option>10,000km〜</option><option>20,000km〜</option><option>30,000km〜</option><option>50,000km〜</option><option>70,000km〜</option></select><span class="flt-range-sep">〜</span><select class="flt-range-sel" id="fltKmTo" onchange="fltRecalc()"><option value="">上限なし</option><option>10,000km以内</option><option>20,000km以内</option><option>30,000km以内</option><option>50,000km以内</option><option>100,000km以内</option></select></div></div><div class="flt-sec" style="margin-bottom:0;"><div class="flt-sec-head"><span class="flt-sec-title">ボディカラー<span class="flt-sel-badge" id="fltColorBadge" style="display:none;"></span></span></div><div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px 16px;"><div class="flt-color-chip" data-color="ホワイト" onclick="fltToggleColor(this)" style="--c:#FFFFFF;"><div class="flt-color-circle" style="background:#F5F5F5;border:1.5px solid #ddd;"></div>ホワイト
+<div class="screen" id="screenFilter"><div class="flt-hdr"><button class="flt-hdr-btn" onclick="goBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>戻る</button><span class="flt-hdr-title">絞り込み</span><button class="flt-hdr-btn flt-hdr-clear" onclick="fltClearAll()">クリア</button></div><div class="flt-body"><div class="flt-search-wrap"><div class="flt-search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" id="fltKeywordInput" placeholder="キーワードからさがす"></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">メーカー・車種で探す<span class="flt-sel-badge" id="fltMakerBadge">0</span></span><span class="flt-total-badge">総掲載台数 511,506台</span></div><div class="flt-tabs"><div class="flt-tab active" onclick="fltSwitchTab('car',this)">車種</div><div class="flt-tab" onclick="fltSwitchTab('parts',this)">パーツ</div><div class="flt-tab" onclick="fltSwitchTab('history',this)">検索履歴</div></div><div class="flt-tab-panel active" id="fltPanel-car"><div class="flt-maker-grid" id="fltMakerGrid"></div><!-- 車種選択（メーカー選択後に表示） --><div id="fltModelArea" style="display:none;padding:0 12px 14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;font-weight:700;color:var(--text-primary);" id="fltModelLabel">車種を選択</span><span style="font-size:11px;color:var(--accent);cursor:pointer;" onclick="clearFltModels()">クリア</span></div><div style="display:flex;flex-wrap:wrap;gap:7px;" id="fltModelChips"></div></div></div><div class="flt-tab-panel" id="fltPanel-parts"><div class="flt-parts-grid"><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">⚙️</div><div class="flt-parts-name">エンジン系</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🛞</div><div class="flt-parts-name">ホイール</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">💨</div><div class="flt-parts-name">エアロ</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🔊</div><div class="flt-parts-name">オーディオ</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">📱</div><div class="flt-parts-name">ナビ・CarPlay</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">💡</div><div class="flt-parts-name">ライト</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🏎️</div><div class="flt-parts-name">サスペンション</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🎨</div><div class="flt-parts-name">塗装・ラッピング</div></div><div class="flt-parts-item" onclick="this.classList.toggle('flt-selected');fltRecalc()"><div class="flt-parts-icon">🪑</div><div class="flt-parts-name">内装・シート</div></div></div></div><div class="flt-tab-panel" id="fltPanel-history"><div class="flt-history"><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">日産 スカイライン カスタム</span><span class="flt-hist-del">削除</span></div><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">Toyota 86 社外マフラー</span><span class="flt-hist-del">削除</span></div><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">Mazda RX-7 FD3S</span><span class="flt-hist-del">削除</span></div><div class="flt-hist-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="flt-hist-kw">CarPlay換装済み</span><span class="flt-hist-del">削除</span></div></div></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">カスタム仕様で探す<span class="flt-sel-badge" id="fltCustomBadge">0</span></span></div><div id="fltCustomChips"><!-- 外装 --><div class="flt-acc open" id="fltAcc0"><div class="flt-acc-hdr" onclick="fltToggleAcc(0)"><div class="flt-acc-left"><span class="flt-acc-icon">🚗</span><span class="flt-acc-name">外装</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt0">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body open" id="fltAccBody0"><div class="flt-chip" onclick="fltToggleChip(this,'0')">フロントバンパー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">フロントリップ</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">リアバンパー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">リアディフューザー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">GTウイング</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">トランクスポイラー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">ワイドフェンダー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">オーバーフェンダー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">カーボンボンネット</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">カーボントランク</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">サイドスカート</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">アイライン</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">グリル交換</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">ドアミラーカバー</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">フルエアロ</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">ラッピング</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">カスタムペイント</div><div class="flt-chip" onclick="fltToggleChip(this,'0')">グラインダータトゥー</div></div></div><!-- 足回り --><div class="flt-acc" id="fltAcc1"><div class="flt-acc-hdr" onclick="fltToggleAcc(1)"><div class="flt-acc-left"><span class="flt-acc-icon">🛞</span><span class="flt-acc-name">足回り・ホイール</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt1">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody1"><div class="flt-chip" onclick="fltToggleChip(this,'1')">車高調</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">エアサス</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ローダウン</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">鍛造ホイール</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">深リム</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ホイールスペーサー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ワイドトレッドスペーサー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ビッグキャリパー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ブレーキパッド強化</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ステンレスブレーキライン</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">タワーバー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">ロールケージ</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">強化スタビライザー</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">アームピロ化</div><div class="flt-chip" onclick="fltToggleChip(this,'1')">キャンバーボルト</div></div></div><!-- 吸排気 --><div class="flt-acc" id="fltAcc2"><div class="flt-acc-hdr" onclick="fltToggleAcc(2)"><div class="flt-acc-left"><span class="flt-acc-icon">💨</span><span class="flt-acc-name">吸排気・エンジン</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt2">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody2"><div class="flt-chip" onclick="fltToggleChip(this,'2')">スポーツマフラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">可変バルブマフラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ワンオフマフラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">フロントパイプ</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">触媒交換</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">キノコ型エアクリ</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ショートラムエアクリ</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">インタークーラー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">タービン換装</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ターボキット</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">スーパーチャージャー</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">ECU書き換え</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">スロコン</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">エンジンオーバーホール</div><div class="flt-chip" onclick="fltToggleChip(this,'2')">エンジンスワップ</div></div></div><!-- 内装 --><div class="flt-acc" id="fltAcc3"><div class="flt-acc-hdr" onclick="fltToggleAcc(3)"><div class="flt-acc-left"><span class="flt-acc-icon">🪑</span><span class="flt-acc-name">内装・シート</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt3">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody3"><div class="flt-chip" onclick="fltToggleChip(this,'3')">セミバケ</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">フルバケ</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">レカロシート</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">シートレール</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">内装張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">アルカンターラ張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">レザーシート</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">カーボンステアリング</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">ショートボス</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">シフトノブ交換</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">カーボンインテリア</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">ピラー張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">天張替え</div><div class="flt-chip" onclick="fltToggleChip(this,'3')">ロールバー</div></div></div><!-- 電装・AV --><div class="flt-acc" id="fltAcc4"><div class="flt-acc-hdr" onclick="fltToggleAcc(4)"><div class="flt-acc-left"><span class="flt-acc-icon">📱</span><span class="flt-acc-name">電装・AV・安全</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt4">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody4"><div class="flt-chip" onclick="fltToggleChip(this,'4')">CarPlay対応</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">テスラナビ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">大画面ナビ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">ドラレコ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">360度ドラレコ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">バックカメラ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">コーナーセンサー</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">ETC2.0</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">レーダー探知機</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">サブウーファー</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">オーディオ強化</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">アンバー照明</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">フットランプ</div><div class="flt-chip" onclick="fltToggleChip(this,'4')">シーケンシャルウインカー</div></div></div><!-- ライト --><div class="flt-acc" id="fltAcc5"><div class="flt-acc-hdr" onclick="fltToggleAcc(5)"><div class="flt-acc-left"><span class="flt-acc-icon">💡</span><span class="flt-acc-name">ライト・灯火類</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt5">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody5"><div class="flt-chip" onclick="fltToggleChip(this,'5')">LEDヘッドライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">HIDヘッドライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">プロジェクターライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">社外テールランプ</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">LEDテール</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">スモークテール</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">フォグランプ追加</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">デイライト</div><div class="flt-chip" onclick="fltToggleChip(this,'5')">イカリング</div></div></div><!-- その他 --><div class="flt-acc" id="fltAcc6"><div class="flt-acc-hdr" onclick="fltToggleAcc(6)"><div class="flt-acc-left"><span class="flt-acc-icon">✨</span><span class="flt-acc-name">コンディション・その他</span></div><div class="flt-acc-right"><span class="flt-acc-cnt" id="fltAccCnt6">0</span><svg class="flt-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="flt-acc-body" id="fltAccBody6"><div class="flt-chip" onclick="fltToggleChip(this,'6')">ワンオーナー</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">記録簿完備</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">禁煙車</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">車検整備済み</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">ガレージ保管</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">コーティング施工</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">領収書・証明書あり</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">サーキット走行歴なし</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">事故歴なし</div><div class="flt-chip" onclick="fltToggleChip(this,'6')">修復歴なし</div></div></div></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">年式</span></div><div class="flt-range-row"><select class="flt-range-sel" id="fltYearFrom" onchange="fltRecalc()"><option value="">下限なし</option><option>1990年</option><option>1995年</option><option>2000年</option><option>2005年</option><option>2010年</option><option>2015年</option><option>2018年</option><option>2020年</option><option>2022年</option></select><span class="flt-range-sep">〜</span><select class="flt-range-sel" id="fltYearTo" onchange="fltRecalc()"><option value="">上限なし</option><option>2020年</option><option>2021年</option><option>2022年</option><option>2023年</option><option>2024年</option><option>2025年</option></select></div></div><div class="flt-sec" style="margin-bottom:8px;"><div class="flt-sec-head"><span class="flt-sec-title">価格</span></div><div class="flt-range-row"><select class="flt-range-sel" id="fltPriceFrom" onchange="fltRecalc()"><option value="">最低価格</option><option value="300000">¥300,000</option><option value="500000">¥500,000</option><option value="1000000">¥1,000,000</option><option value="1500000">¥1,500,000</option><option value="2000000">¥2,000,000</option><option value="3000000">¥3,000,000</option></select><span class="flt-range-sep">〜</span><select class="flt-range-sel" id="fltPriceTo" onchange="fltRecalc()"><option value="">最高価格</option><option value="500000">¥500,000</option><option value="1000000">¥1,000,000</option><option value="1500000">¥1,500,000</option><option value="2000000">¥2,000,000</option><option value="3000000">¥3,000,000</option><option value="5000000">¥5,000,000</option></select></div></div><div class="flt-sec" style="margin-bottom:0;"><div class="flt-sec-head"><span class="flt-sec-title">走行距離</span></div><div class="flt-range-row"><select class="flt-range-sel" id="fltKmFrom" onchange="fltRecalc()"><option value="">0km〜</option><option>10,000km〜</option><option>20,000km〜</option><option>30,000km〜</option><option>50,000km〜</option><option>70,000km〜</option></select><span class="flt-range-sep">〜</span><select class="flt-range-sel" id="fltKmTo" onchange="fltRecalc()"><option value="">上限なし</option><option>10,000km以内</option><option>20,000km以内</option><option>30,000km以内</option><option>50,000km以内</option><option>100,000km以内</option></select></div></div><div class="flt-sec" style="margin-bottom:0;"><div class="flt-sec-head"><span class="flt-sec-title">ボディカラー<span class="flt-sel-badge" id="fltColorBadge" style="display:none;"></span></span></div><div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px 16px;"><div class="flt-color-chip" data-color="ホワイト" onclick="fltToggleColor(this)" style="--c:#FFFFFF;"><div class="flt-color-circle" style="background:#F5F5F5;border:1.5px solid #ddd;"></div>ホワイト
         </div><div class="flt-color-chip" data-color="ブラック" onclick="fltToggleColor(this)" style="--c:#1A1A1A;"><div class="flt-color-circle" style="background:#1A1A1A;"></div>ブラック
         </div><div class="flt-color-chip" data-color="シルバー" onclick="fltToggleColor(this)"><div class="flt-color-circle" style="background:linear-gradient(135deg,#C0C0C0,#888);"></div>シルバー
         </div><div class="flt-color-chip" data-color="グレー" onclick="fltToggleColor(this)"><div class="flt-color-circle" style="background:#6B6B6B;"></div>グレー
@@ -1305,9 +1452,254 @@ html,body{height:100%;background:#242424;display:flex;justify-content:center;ali
 let carsData=[];
 
 // Firestoreから出品一覧を読み込む
+
+// ══ ホームキーワード検索（Firestore + ローカル両対応） ══
+let _searchTimer = null;
+function homeSearch(kw){
+  clearTimeout(_searchTimer);
+  kw = kw.trim();
+  if(!kw){ loadListings(); return; }
+  _searchTimer = setTimeout(async ()=>{
+    const grid = document.getElementById('carGrid');
+    if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">検索中...</div>';
+    const kwLower = kw.toLowerCase();
+    // まずローカルのcarsDataをフィルタ
+    let results = carsData.filter(c =>
+      (c.name||'').toLowerCase().includes(kwLower) ||
+      (c.maker||'').toLowerCase().includes(kwLower) ||
+      (c.desc||'').toLowerCase().includes(kwLower) ||
+      (c.tags||[]).some(t => t.toLowerCase().includes(kwLower))
+    );
+    // Firestoreからも検索（makerが一致するもの）
+    if(window._fbDb && results.length < 5){
+      try{
+        const snap = await window._fbDb.collection('listings')
+          .where('status','==','active')
+          .limit(50).get();
+        const extra = snap.docs.map(doc => {
+          const d = doc.data();
+          return {
+            id: doc.id, maker: d.maker||'', name:(d.maker||'')+' '+(d.model||d.partsName||''),
+            priceVal: parseInt(d.price)||0, hosho:d.hosho||false,
+            mine: d.sellerId === window._fbAuth?.currentUser?.uid,
+            img:(d.photoURLs&&d.photoURLs[0])||d.mainPhoto||'',
+            thumbs:d.photoURLs||[], tags:d.tags||[],
+            spec:{年式:d.year||'',走行距離:d.mileage||'',色:d.color||''},
+            desc:d.description||'', postedAt:new Date(), sellerId:d.sellerId||''
+          };
+        }).filter(c =>
+          (c.name||'').toLowerCase().includes(kwLower) ||
+          (c.maker||'').toLowerCase().includes(kwLower) ||
+          (c.tags||[]).some(t => t.toLowerCase().includes(kwLower))
+        );
+        // 重複排除してマージ
+        const existIds = new Set(results.map(c=>String(c.id)));
+        extra.forEach(c=>{ if(!existIds.has(String(c.id))){ results.push(c); existIds.add(String(c.id)); }});
+      }catch(e){}
+    }
+    document.getElementById('homeTitle').textContent = results.length > 0
+      ? `「${kw}」の検索結果（${results.length}件）`
+      : `「${kw}」の検索結果`;
+    renderCards(results);
+  }, 400);
+}
+
+// ══ ユーザープロフィールページ ══
+async function openUserProfile(uid){
+  if(!uid) return;
+  const user = window._fbAuth?.currentUser;
+  const isMe = uid === user?.uid;
+  try{
+    const doc = await window._fbDb.collection('users').doc(uid).get();
+    const d = doc.exists ? doc.data() : {};
+    const DEFAULT_AVT = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23C8CDD4'/%3E%3Cellipse cx='50' cy='38' rx='18' ry='20' fill='%23E8EAED'/%3E%3Cellipse cx='50' cy='85' rx='30' ry='22' fill='%23E8EAED'/%3E%3C/svg%3E";
+
+    // 出品一覧取得
+    const listSnap = await window._fbDb.collection('listings')
+      .where('sellerId','==',uid).where('status','==','active')
+      .orderBy('createdAt','desc').limit(12).get();
+    const listings = listSnap.docs.map(doc => {
+      const ld = doc.data();
+      return { id: doc.id, ...ld };
+    });
+
+    // プロフィール画面をシートとして表示
+    const sheet = document.createElement('div');
+    sheet.id = 'userProfileSheet';
+    sheet.style.cssText = 'position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94);';
+    sheet.innerHTML = `
+      <div style="position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:16px;gap:12px;z-index:10;">
+        <button onclick="closeUserProfile()" style="background:none;border:none;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:20px;height:20px;"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span style="font-size:16px;font-weight:700;color:var(--text-primary);">プロフィール</span>
+      </div>
+      <div style="padding:20px 16px;">
+        <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
+          <img src="${d.photoURL||DEFAULT_AVT}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
+          <div>
+            <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:2px;">${d.username||'未設定'}</div>
+            <div style="font-size:12px;color:var(--text-muted);">${d.prefecture||''}</div>
+            <div style="font-size:12px;color:var(--accent);margin-top:4px;">★ ${(d.rating||0).toFixed(1)} （${d.ratingCount||0}件の評価）</div>
+          </div>
+        </div>
+        ${d.bio ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;padding:12px;background:var(--surface);border-radius:10px;">${d.bio}</div>` : ''}
+        <div style="display:flex;gap:16px;margin-bottom:20px;">
+          <div style="flex:1;text-align:center;padding:12px;background:var(--surface);border-radius:10px;">
+            <div style="font-size:20px;font-weight:700;color:var(--text-primary);">${d.sellCount||0}</div>
+            <div style="font-size:11px;color:var(--text-muted);">出品</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:12px;background:var(--surface);border-radius:10px;">
+            <div style="font-size:20px;font-weight:700;color:var(--text-primary);">${d.buyCount||0}</div>
+            <div style="font-size:11px;color:var(--text-muted);">購入</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:12px;background:var(--surface);border-radius:10px;">
+            <div style="font-size:20px;font-weight:700;color:var(--accent);">${(d.rating||0).toFixed(1)}</div>
+            <div style="font-size:11px;color:var(--text-muted);">評価</div>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">出品中の商品（${listings.length}件）</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+          ${listings.length > 0 ? listings.map(l => `
+            <div onclick="closeUserProfile();openListingDetail('${l.id}')" style="border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:#111;">
+              ${l.photoURLs?.[0]||l.mainPhoto ? `<img src="${l.photoURLs?.[0]||l.mainPhoto}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5" style="width:24px;height:24px;"><rect x="1" y="3" width="15" height="13" rx="2"/></svg></div>'}
+            </div>`).join('') : '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">出品中の商品はありません</div>'}
+        </div>
+      </div>`;
+    document.body.appendChild(sheet);
+    requestAnimationFrame(()=>{ sheet.style.transform='translateY(0)'; });
+  }catch(e){ console.log('profile error:', e); }
+}
+
+function closeUserProfile(){
+  const sheet = document.getElementById('userProfileSheet');
+  if(!sheet) return;
+  sheet.style.transform='translateY(100%)';
+  setTimeout(()=>sheet.remove(), 300);
+}
+
+// ══ 評価・レビュー機能 ══
+async function submitReview(targetUid, listingId, rating, comment){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ alert('ログインが必要です'); return; }
+  if(targetUid === user.uid){ alert('自分自身は評価できません'); return; }
+  try{
+    // レビュー保存
+    await window._fbDb.collection('reviews').add({
+      fromUid: user.uid,
+      toUid: targetUid,
+      listingId,
+      rating,
+      comment,
+      createdAt: new Date().toISOString()
+    });
+    // ユーザーの評価を再計算
+    const snap = await window._fbDb.collection('reviews').where('toUid','==',targetUid).get();
+    const ratings = snap.docs.map(d=>d.data().rating||0);
+    const avg = ratings.length ? ratings.reduce((a,b)=>a+b,0)/ratings.length : 0;
+    await window._fbDb.collection('users').doc(targetUid).set({
+      rating: parseFloat(avg.toFixed(1)),
+      ratingCount: ratings.length
+    },{merge:true});
+    showToast('✓ 評価を送信しました', 'var(--green)');
+    closeReviewModal();
+  }catch(e){ alert('評価の送信に失敗しました: '+e.message); }
+}
+
+function openReviewModal(targetUid, listingId, targetName){
+  let selectedRating = 5;
+  const modal = document.createElement('div');
+  modal.id = 'reviewModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;';
+  modal.innerHTML = `
+    <div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 16px 40px;">
+      <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+      <div style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">評価を送る</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">${targetName||'出品者'}への評価</div>
+      <div id="reviewStars" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+        ${[1,2,3,4,5].map(i=>`<span onclick="setReviewRating(${i})" id="rstar${i}" style="font-size:32px;cursor:pointer;">${i<=5?'⭐':'☆'}</span>`).join('')}
+      </div>
+      <textarea id="reviewComment" placeholder="コメントを入力（任意）" style="width:100%;min-height:80px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);padding:10px 12px;font-family:var(--font-body);font-size:14px;color:var(--text-primary);outline:none;resize:none;line-height:1.6;margin-bottom:12px;"></textarea>
+      <button onclick="submitReview('${targetUid}','${listingId}',window._reviewRating||5,document.getElementById('reviewComment').value)" style="width:100%;height:50px;border-radius:14px;background:var(--accent);color:#fff;border:none;font-family:var(--font-body);font-size:15px;font-weight:700;cursor:pointer;">評価を送信</button>
+      <button onclick="closeReviewModal()" style="width:100%;height:44px;border-radius:14px;background:none;border:1.5px solid var(--border);color:var(--text-secondary);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;">キャンセル</button>
+    </div>`;
+  window._reviewRating = 5;
+  document.body.appendChild(modal);
+}
+
+function setReviewRating(n){
+  window._reviewRating = n;
+  [1,2,3,4,5].forEach(i=>{
+    const el = document.getElementById('rstar'+i);
+    if(el) el.textContent = i<=n ? '⭐' : '☆';
+  });
+}
+
+function closeReviewModal(){
+  const m = document.getElementById('reviewModal');
+  if(m) m.remove();
+}
+
+// ══ 購入フロー・取引ステータス管理 ══
+async function completePurchase(listingId, sellerId, price){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ alert('ログインが必要です'); return; }
+  try{
+    const btn = document.querySelector('#screenCheckout .co-btn-pay');
+    if(btn){ btn.disabled=true; btn.textContent='処理中...'; }
+
+    // 取引レコード作成
+    const txRef = await window._fbDb.collection('transactions').add({
+      listingId,
+      buyerId: user.uid,
+      sellerId,
+      price,
+      status: 'paid',       // paid → shipping → delivered → completed
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    // 出品ステータスを sold に
+    await window._fbDb.collection('listings').doc(listingId).set({
+      status: 'sold',
+      buyerId: user.uid,
+      soldAt: new Date().toISOString()
+    },{merge:true});
+
+    // 購入数インクリメント
+    await window._fbDb.collection('users').doc(user.uid).set({
+      buyCount: firebase.firestore.FieldValue.increment(1)
+    },{merge:true});
+
+    // ホームから売れた商品を除外
+    carsData = carsData.filter(c => String(c.id) !== String(listingId));
+    renderCards();
+
+    goTo('purchaseSuccess');
+
+    // 出品者に評価ダイアログを後で表示
+    setTimeout(()=>{ openReviewModal(sellerId, listingId, '出品者'); }, 2000);
+  }catch(e){
+    alert('購入処理に失敗しました: '+e.message);
+    const btn = document.querySelector('#screenCheckout .co-btn-pay');
+    if(btn){ btn.disabled=false; btn.textContent='購入を確定する'; }
+  }
+}
+
 async function loadListings(){
   const grid = document.getElementById('carGrid');
-  if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--text-muted);font-size:13px;">読み込み中...</div>';
+  if(grid){
+    // スケルトン表示
+    const skels = Array(6).fill(0).map(()=>`
+      <div class="skel-card">
+        <div class="skel-img"></div>
+        <div class="skel-line" style="margin-top:8px;"></div>
+        <div class="skel-line short"></div>
+        <div class="skel-line shorter" style="margin-bottom:8px;"></div>
+      </div>`).join('');
+    grid.style.cssText='display:grid;gap:8px;grid-template-columns:repeat(3,1fr)';
+    grid.innerHTML = skels;
+  }
   try{
     const snap = await window._fbDb.collection('listings')
       .where('status','==','active')
@@ -1437,10 +1829,15 @@ function closeSortIfOpen(e){if(document.getElementById('sortDropdown').classList
 
 // ══ HEART ══
 function toggleFav(e,id){e.stopPropagation();const btn=e.currentTarget;if(favorites.has(id))favorites.delete(id);else{favorites.add(id);triggerPop(btn);}const liked=favorites.has(id);btn.className='btn-heart'+(liked?' liked':'');btn.innerHTML=hSVG(liked);syncDetailFav(id,liked);saveFavoritesToFirestore();}
+
+function openDetailSellerProfile(){
+  const sid = document.getElementById('screenDetail').dataset.sellerId;
+  if(sid) openUserProfile(sid);
+}
 function syncDetailFav(id,liked){if(currentCarId!==id)return;const btn=document.getElementById('btnFavDetail');if(!btn)return;btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;}
 
 // ══ DETAIL ══
-function populateDetail(id){const car=carsData.find(c=>c.id===id||c.id===String(id)||String(c.id)===String(id));if(!car)return;document.getElementById('detailHeaderTitle').textContent=car.name;document.getElementById('detailHero').src=car.img;document.getElementById('detailMaker').textContent=car.maker;document.getElementById('detailBadges').innerHTML=(car.hosho?'<span class="detail-badge hosho">安心保証</span>':'')+(car.mine?'<span class="detail-badge mine-badge">出品中</span>':'');document.getElementById('detailName').textContent=car.name;document.getElementById('detailPrice').textContent=fmtP(car.priceVal);document.getElementById('detailCashback').textContent=fmtCB(car.priceVal);document.getElementById('detailTags').innerHTML=car.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('detailSpec').innerHTML=Object.entries(car.spec).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');document.getElementById('detailDesc').textContent=car.desc;document.getElementById('thumbRow').innerHTML=car.thumbs.map((s,i)=>`<img class="thumb${i===0?' active':''}" src="${s}" onclick="switchHero(this)">`).join('');const liked=favorites.has(id);const btn=document.getElementById('btnFavDetail');btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;document.getElementById('detailScroll').scrollTop=0;
+function populateDetail(id){const car=carsData.find(c=>c.id===id||c.id===String(id)||String(c.id)===String(id));if(!car)return;document.getElementById('detailHeaderTitle').textContent=car.name;const heroImg=document.getElementById('detailHero');heroImg.classList.add('img-loading');heroImg.src=car.img;heroImg.onload=()=>{heroImg.classList.remove('img-loading');heroImg.classList.add('img-loaded');};document.getElementById('detailMaker').textContent=car.maker;document.getElementById('detailBadges').innerHTML=(car.hosho?'<span class="detail-badge hosho">安心保証</span>':'')+(car.mine?'<span class="detail-badge mine-badge">出品中</span>':'');document.getElementById('detailName').textContent=car.name;document.getElementById('detailPrice').textContent=fmtP(car.priceVal);document.getElementById('detailCashback').textContent=fmtCB(car.priceVal);document.getElementById('detailTags').innerHTML=car.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');document.getElementById('detailSpec').innerHTML=Object.entries(car.spec).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('');document.getElementById('detailDesc').textContent=car.desc;document.getElementById('thumbRow').innerHTML=car.thumbs.map((s,i)=>`<img class="thumb${i===0?' active':''}" src="${s}" onclick="switchHero(this)">`).join('');const liked=favorites.has(id);const btn=document.getElementById('btnFavDetail');btn.className='btn-fav-detail'+(liked?' liked':'');btn.innerHTML=`<svg viewBox="0 0 24 24" fill="${liked?'var(--accent)':'none'}" stroke="${liked?'var(--accent)':'var(--text-primary)'}" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;document.getElementById('detailScroll').scrollTop=0; document.getElementById('screenDetail').dataset.sellerId = car.sellerId||'';
   if(typeof addHistory==='function') addHistory(car);
 }
 function switchHero(el){document.getElementById('detailHero').src=el.src.replace('w=200','w=600');document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
@@ -1591,6 +1988,8 @@ function fltToggleChip(el,cat){el.classList.toggle('on');const cnt=document.quer
 function fltRecalc(){const get=id=>{const el=document.getElementById(id);return el&&el.value;};const total=Math.max(12,5210+fltSelMakers.size*-312+fltCustomCount*-180+fltSelColors.size*-250+(get("fltYearFrom")?-420:0)+(get("fltYearTo")?-380:0)+(get("fltPriceFrom")?-200:0)+(get("fltPriceTo")?-150:0)+(get("fltKmFrom")?-100:0)+(get("fltKmTo")?-80:0));const el=document.getElementById("fltHitCount");if(el)el.textContent="（該当："+total.toLocaleString("ja-JP")+"件）";}
 function fltClearAll(){fltSelMakers.clear();if(fltSelModels)fltSelModels.clear();if(fltSelColors)fltSelColors.clear();document.querySelectorAll(".flt-maker-item").forEach(e=>e.classList.remove("flt-selected"));document.querySelectorAll(".flt-chip,.flt-parts-item,.flt-color-chip").forEach(e=>e.classList.remove("on","flt-selected"));const ma=document.getElementById("fltModelArea");if(ma)ma.style.display="none";const cb2=document.getElementById("fltColorBadge");if(cb2){cb2.textContent=0;cb2.style.display="none";}[0,1,2,3].forEach(i=>{const b=document.getElementById("fltAccCnt"+i);if(b){b.textContent=0;b.classList.remove("show");}});["fltYearFrom","fltYearTo","fltPriceFrom","fltPriceTo","fltKmFrom","fltKmTo"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});fltCustomCount=0;fltUpdateMakerBadge();const cb=document.getElementById("fltCustomBadge");if(cb)cb.style.display="none";fltRecalc();}
 function fltApplyAndReturn(){
+  const kw = (document.getElementById('fltKeywordInput')?.value||'').trim().toLowerCase();
+
   const selEn = [...fltSelMakers].map(i=>fltMakers[i].name).map(n=>makerMap[n]||n);
   const selModels = fltSelModels ? [...fltSelModels] : [];
   const pF = parseInt(document.getElementById('fltPriceFrom')?.value)||0;
@@ -1606,6 +2005,14 @@ function fltApplyAndReturn(){
   const selColors = [...document.querySelectorAll('.flt-color-chip.on')].map(e=>e.dataset.color);
 
   let results = [...carsData];
+
+  // キーワードフィルタ
+  if(kw){ results = results.filter(c =>
+    (c.name||'').toLowerCase().includes(kw) ||
+    (c.maker||'').toLowerCase().includes(kw) ||
+    (c.desc||'').toLowerCase().includes(kw) ||
+    (c.tags||[]).some(t=>t.toLowerCase().includes(kw))
+  );}
 
   // メーカーフィルタ
   if(selEn.length > 0) results = results.filter(c => selEn.some(m => c.maker.includes(m)));
@@ -2723,43 +3130,100 @@ function closePretalkOverlay(){
   if(overlay) overlay.classList.remove('show');
 }
 
-function goToTalkFromDetail(){
+async function goToTalkFromDetail(){
   closePretalkOverlay();
-  const car = carsData.find(c=>c.id===_pretalkCarId);
-  if(!car) return;
-  // TALK_ROOMSにこの車のルームがあればそこへ、なければ新規
-  const existingRoom = TALK_ROOMS.find(r=>r.carId===car.id);
-  if(existingRoom){
-    openChat(existingRoom.id);
+  const car = carsData.find(c=>String(c.id)===String(_pretalkCarId));
+  if(!car){ alert('商品情報を取得できませんでした'); return; }
+
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+
+  // 自分の出品には話しかけられない
+  if(car.sellerId === user.uid){
+    alert('自分の出品商品にはトークできません'); return;
+  }
+
+  let roomId = null;
+
+  if(window._fbDb){
+    try{
+      // 既存のトークルームを検索
+      const snap = await window._fbDb.collection('talks')
+        .where('members','array-contains', user.uid)
+        .where('listingId','==', String(car.id))
+        .limit(1).get();
+
+      if(!snap.empty){
+        roomId = snap.docs[0].id;
+      } else {
+        // 出品者プロフィール取得
+        let sellerName = '出品者';
+        let sellerAvatar = '';
+        if(car.sellerId){
+          try{
+            const sellerDoc = await window._fbDb.collection('users').doc(car.sellerId).get();
+            if(sellerDoc.exists){
+              const sd = sellerDoc.data();
+              sellerName = sd.username || sd.displayname || '出品者';
+              sellerAvatar = sd.photoURL || '';
+            }
+          }catch(e){}
+        }
+
+        // 新規トークルーム作成
+        const newRoomRef = await window._fbDb.collection('talks').add({
+          members: [user.uid, car.sellerId || 'seller'],
+          listingId: String(car.id),
+          carName: car.name,
+          carImg: car.img,
+          carPrice: car.priceVal,
+          sellerId: car.sellerId || '',
+          buyerId: user.uid,
+          otherName: sellerName,
+          otherAvatar: sellerAvatar,
+          lastMsg: 'トークを開始しました',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        roomId = newRoomRef.id;
+      }
+    }catch(e){
+      console.log('talk error:', e);
+      // Firestore失敗時はローカルで対応
+      roomId = 'local_'+car.id;
+    }
   } else {
-    // ダミールームを先頭に追加して開く
-    const newRoom = {
-      id: 'new_'+car.id,
-      carId: car.id,
-      name: car.name,
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&q=80',
-      userName: '出品者',
+    roomId = 'local_'+car.id;
+  }
+
+  // ローカルのTALK_ROOMSにも追加
+  if(!TALK_ROOMS.find(r=>r.id===roomId)){
+    TALK_ROOMS.unshift({
+      id: roomId,
+      carId: String(car.id),
+      listingId: String(car.id),
+      name: '出品者',
+      avatar: '',
+      carImg: car.img,
+      carName: car.name,
+      carPrice: car.priceVal,
       lastMsg: 'トークを開始しました',
       time: '今',
       unread: 0,
-      online: true,
-      carImg: car.img,
-      carName: car.name,
-      carPrice: '¥'+car.priceVal.toLocaleString('ja-JP'),
-    };
-    TALK_ROOMS.unshift(newRoom);
-    openChat('new_'+car.id);
+      online: false
+    });
   }
+
+  openChat(roomId);
+
   // チャット画面に購入バナーを表示
   setTimeout(()=>{
-    const car2 = carsData.find(c=>c.id===_pretalkCarId);
-    if(!car2) return;
     const banner = document.getElementById('chatBuyBanner');
     const bname  = document.getElementById('chatBuyName');
     const bprice = document.getElementById('chatBuyPrice');
-    if(banner){ banner.classList.add('show'); }
-    if(bname)  bname.textContent  = car2.name;
-    if(bprice) bprice.textContent = '¥'+car2.priceVal.toLocaleString('ja-JP');
+    if(banner) banner.classList.add('show');
+    if(bname)  bname.textContent  = car.name;
+    if(bprice) bprice.textContent = '¥'+car.priceVal.toLocaleString('ja-JP');
   }, 300);
 }
 
@@ -2907,9 +3371,6 @@ function resetSellForm(){
   updateSellFee();
 }
 
-function saveSellDraft(){
-  alert('下書き保存しました！（本番時はFirestoreに保存されます）');
-}
 
 async function doSellSubmit(){
   const user = window._fbAuth?.currentUser;
@@ -3009,10 +3470,16 @@ async function doSellSubmit(){
       })
     };
 
-    await window._fbDb.collection('listings').add(listingData);
+    const listingRef = await window._fbDb.collection('listings').add(listingData);
+    // ユーザーの出品数をインクリメント
+    await window._fbDb.collection('users').doc(user.uid).set({
+      sellCount: firebase.firestore.FieldValue.increment(1)
+    }, {merge:true});
 
     btn.innerHTML = '出品する'; btn.disabled = false;
     resetSellForm();
+    // ホームに反映
+    await loadListings();
     goTo('sellSuccess');
 
   } catch(e){
@@ -3634,9 +4101,12 @@ function openChat(roomId){
   // バナー
   document.getElementById('chatBannerImg').src = room.carImg;
   document.getElementById('chatBannerName').textContent = room.carName;
-  document.getElementById('chatBannerPrice').textContent = '¥'+room.carPrice.toLocaleString('ja-JP');
+  const priceVal = typeof room.carPrice === 'number' ? room.carPrice : parseInt(String(room.carPrice).replace(/[^0-9]/g,''))||0;
+  document.getElementById('chatBannerPrice').textContent = '¥'+priceVal.toLocaleString('ja-JP');
   // メッセージ描画
   renderChatMsgs(roomId);
+  // Firestoreリアルタイムリスナー開始
+  subscribeChat(roomId);
   goTo('chat');
 }
 
@@ -3669,13 +4139,69 @@ function renderChatMsgs(roomId){
   setTimeout(()=>{ el.scrollTop = el.scrollHeight; }, 50);
 }
 
-function sendChatMsg(){
+let _chatUnsubscribe = null; // リアルタイムリスナー解除用
+
+async function subscribeChat(roomId){
+  // 前のリスナーを解除
+  if(_chatUnsubscribe){ _chatUnsubscribe(); _chatUnsubscribe = null; }
+  if(!window._fbDb || !roomId) return;
+  const user = window._fbAuth?.currentUser;
+  try{
+    _chatUnsubscribe = window._fbDb
+      .collection('talks').doc(roomId)
+      .collection('messages')
+      .orderBy('createdAt','asc')
+      .limit(100)
+      .onSnapshot(snap => {
+        const msgs = snap.docs.map(d => {
+          const m = d.data();
+          const dt = m.createdAt ? new Date(m.createdAt.toDate ? m.createdAt.toDate() : m.createdAt) : new Date();
+          return {
+            id: d.id,
+            from: m.senderId === user?.uid ? 'me' : 'them',
+            text: m.text || '',
+            time: dt.getHours().toString().padStart(2,'0')+':'+dt.getMinutes().toString().padStart(2,'0'),
+            isImg: m.isImg || false,
+            imgUrl: m.imgUrl || '',
+            read: m.read || false,
+            reaction: m.reaction || ''
+          };
+        });
+        CHAT_MESSAGES[roomId] = msgs;
+        renderChatMsgs(roomId);
+      });
+  }catch(e){ console.log('chat subscribe error:', e); }
+}
+
+async function sendChatMsg(){
   const input = document.getElementById('chatInput');
   const text = input?.textContent?.trim();
   if(!text || !currentRoomId) return;
-  const msgId = 'm'+Date.now();
+  input.textContent = '';
+  const user = window._fbAuth?.currentUser;
   const now = new Date();
   const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+
+  // Firestoreに保存
+  if(window._fbDb && user){
+    try{
+      await window._fbDb.collection('talks').doc(currentRoomId).collection('messages').add({
+        senderId: user.uid,
+        text,
+        createdAt: new Date().toISOString(),
+        read: false
+      });
+      // トークルームの最終メッセージ更新
+      await window._fbDb.collection('talks').doc(currentRoomId).set({
+        lastMsg: text,
+        updatedAt: new Date().toISOString()
+      }, {merge:true});
+      return; // リアルタイムリスナーが自動で描画
+    }catch(e){ console.log('send error:', e); }
+  }
+
+  // Firestore失敗時はローカル
+  const msgId = 'm'+Date.now();
   const msg = { id:msgId, from:'me', text, time:timeStr, read:false };
   if(!CHAT_MESSAGES[currentRoomId]) CHAT_MESSAGES[currentRoomId] = [];
   CHAT_MESSAGES[currentRoomId].push(msg);
@@ -3836,6 +4362,52 @@ function updateStatusTime(){
   const now = new Date();
   el.textContent = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
 }
+
+// ══ リップルエフェクト ══
+function addRipple(e, el){
+  const rect = el.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  const r = document.createElement('span');
+  r.className = 'ripple-el';
+  r.style.cssText = `left:${x}px;top:${y}px;color:rgba(0,0,0,.08);`;
+  el.appendChild(r);
+  r.addEventListener('animationend', ()=>r.remove());
+}
+
+// ボタン・カード類にリップルを自動付与
+document.addEventListener('DOMContentLoaded', ()=>{
+  applyRipples();
+});
+function applyRipples(){
+  const selectors = [
+    '.btn-buy','.pe-save-btn','.auth-btn','.sell-submit-btn',
+    '.flt-btn-search','.launch-btn','.login-btn','.ctrl-btn',
+    '.mp-txn-item','.mp-settings-item','.sort-option',
+    '.pretalk-btn-talk','.pretalk-btn-skip',
+  ];
+  selectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      if(el.classList.contains('ripple-wrap')) return;
+      el.classList.add('ripple-wrap');
+      el.addEventListener('pointerdown', e => addRipple(e, el), {passive:true});
+    });
+  });
+}
+
+// ナビタップ時にアイコンをバウンス
+document.addEventListener('click', e => {
+  const navItem = e.target.closest('.nav-item');
+  if(navItem && !navItem.classList.contains('nav-sell')){
+    const svg = navItem.querySelector('svg');
+    if(svg){
+      svg.style.animation = 'none';
+      svg.offsetHeight; // reflow
+      svg.style.animation = 'springPress .4s cubic-bezier(.34,1.56,.64,1)';
+    }
+  }
+}, {passive:true});
+
 updateStatusTime();
 setInterval(updateStatusTime, 30000);
 
