@@ -45,6 +45,7 @@
         await loadFavoritesFromFirestore(user.uid);
         await loadGarageList();
         loadNotifications();
+        subscribeRealtimeCounts(user.uid);
         // まだlaunch画面なら自動でホームへ
         const launch = document.getElementById('screenLaunch');
         if(launch && launch.classList.contains('screen-launch-default')){
@@ -1267,7 +1268,7 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
       Appleで登録
     </button><button class="auth-sns" onclick="alert('本番時：Firebase Auth でGoogleログインが動作します')"><svg style="width:20px;height:20px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       Googleで登録
-    </button><div class="auth-divider">または</div><div class="auth-field"><label class="auth-label">ユーザー名</label><div class="auth-input-wrap"><input class="auth-input" style="padding:0 14px;" type="text" id="reg_uname" placeholder="例：skyline_takeshi" maxlength="20" oninput="validateReg()"></div><div class="auth-hint">英数字・アンダースコアのみ（後から変更可）</div></div><div class="auth-field"><label class="auth-label">メールアドレス</label><div class="auth-input-wrap"><input class="auth-input" style="padding:0 14px;" type="email" id="reg_email" placeholder="example@email.com" oninput="validateReg()"></div></div><div class="auth-field"><label class="auth-label">パスワード</label><div class="auth-input-wrap"><input class="auth-input" type="password" id="reg_pw" placeholder="8文字以上" oninput="checkRegPw()"><button class="auth-eye" onclick="togglePw('reg_pw')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="pw-bar-wrap"><div class="pw-bar" id="regPwBar"></div></div><div class="auth-hint" id="regPwHint">8文字以上・英数字を含む</div></div><label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;"><input type="checkbox" id="reg_terms" style="width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex-shrink:0;" onchange="validateReg()"><span style="font-size:12px;color:var(--text-secondary);line-height:1.6;"><span style="color:var(--accent);font-weight:600;">利用規約</span>・<span style="color:var(--accent);font-weight:600;">プライバシーポリシー</span>に同意します</span></label><button class="auth-btn" id="regBtn" disabled onclick="doRegister()">アカウントを作成する</button><div style="text-align:center;font-size:13px;color:var(--text-secondary);">すでにアカウントをお持ちの方は <span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="goTo('login')">ログイン</span></div></div></div>
+    </button><div class="auth-divider">または</div><div class="auth-field"><label class="auth-label">ユーザー名</label><div class="auth-input-wrap"><input class="auth-input" style="padding:0 14px;" type="text" id="reg_uname" placeholder="例：skyline_takeshi" maxlength="20" oninput="validateReg()"></div><div class="auth-hint">英数字・アンダースコアのみ（後から変更可）</div></div><div class="auth-field"><label class="auth-label">メールアドレス</label><div class="auth-input-wrap"><input class="auth-input" style="padding:0 14px;" type="email" id="reg_email" placeholder="example@email.com" oninput="validateReg()"></div></div><div class="auth-field"><label class="auth-label">パスワード</label><div class="auth-input-wrap"><input class="auth-input" type="password" id="reg_pw" placeholder="8文字以上" oninput="checkRegPw()"><button class="auth-eye" onclick="togglePw('reg_pw')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="pw-bar-wrap"><div class="pw-bar" id="regPwBar"></div></div><div class="auth-hint" id="regPwHint">8文字以上・英数字を含む</div></div><label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;"><input type="checkbox" id="reg_terms" style="width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex-shrink:0;" onchange="validateReg()"><span style="font-size:12px;color:var(--text-secondary);line-height:1.6;"><span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="goTo('terms')">利用規約</span>・<span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="goTo('privacy')">プライバシーポリシー</span>に同意します</span></label><button class="auth-btn" id="regBtn" disabled onclick="doRegister()">アカウントを作成する</button><div style="text-align:center;font-size:13px;color:var(--text-secondary);">すでにアカウントをお持ちの方は <span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="goTo('login')">ログイン</span></div></div></div>
 </div><!-- ══ ログイン ══ -->
 <div class="screen" id="screenLogin">
   <!-- 背景オーブ -->
@@ -1457,7 +1458,129 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 
     <!-- 対応ブランド --><div class="pe-sec-label">対応カードブランド</div><div style="margin:0 12px;background:var(--surface);border-radius:12px;padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;"><div style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;color:#1A1F71;">VISA</div><div style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;color:#EB001B;">Master<span style="color:#F79E1B;">card</span></div><div style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;color:#007BC1;">JCB</div><div style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;color:#2E77BC;">AMEX</div></div><div style="height:16px;"></div></div></div>
 </div><!-- ══ ガイド・お問い合わせ ══ -->
-<div class="screen" id="screenGuide" style="background:var(--bg) !important;"><div class="auth-hdr"><button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">ガイド・お問い合わせ</span></div><div class="pe-scroll" style="bottom:0;"><div class="pe-inner"><!-- よくある質問 --><div class="pe-sec-label">よくある質問（FAQ）</div><div class="pe-card"><div id="faqList"></div></div><!-- お問い合わせ --><div class="pe-sec-label">お問い合わせ</div><div class="pe-card"><div class="pe-row"><div class="pe-label">お問い合わせ内容</div><select class="pe-input" id="inquiry_type" class="pe-input sel"><option value="">選択してください</option><option>アカウントについて</option><option>出品・売却について</option><option>購入・決済について</option><option>トラブル・クレーム</option><option>不正利用の報告</option><option>その他</option></select></div><div class="pe-row"><div class="pe-label">お問い合わせ内容の詳細</div><textarea class="pe-textarea" id="inquiry_body" placeholder="お問い合わせ内容を詳しく記入してください。" maxlength="500" style="min-height:100px;"></textarea></div><div class="pe-row pe-row-last"><div class="pe-label">メールアドレス（返信先）</div><input class="pe-input" type="email" id="inquiry_email" placeholder="example@email.com"></div></div><div style="padding:0 12px 16px;"><button onclick="sendInquiry()" style="width:100%;height:50px;border-radius:14px;background:var(--text-primary);color:#fff;border:none;font-family:var(--font-body);font-size:15px;font-weight:700;cursor:pointer;">送信する</button></div><!-- 利用規約・プライバシー --><div class="pe-sec-label">規約・ポリシー</div><div class="pe-card"><div class="pe-row" style="cursor:pointer;" onclick="alert('利用規約ページは準備中です')"><div style="flex:1;font-size:13px;font-weight:500;color:var(--text-primary);">利用規約</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;color:var(--text-muted);"><polyline points="9 18 15 12 9 6"/></svg></div><div class="pe-row" style="cursor:pointer;border-bottom:none;" onclick="alert('プライバシーポリシーページは準備中です')"><div style="flex:1;font-size:13px;font-weight:500;color:var(--text-primary);">プライバシーポリシー</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;color:var(--text-muted);"><polyline points="9 18 15 12 9 6"/></svg></div></div><div style="height:16px;"></div></div></div>
+
+<div class="screen" id="screenTerms" style="background:var(--bg) !important;">
+  <div class="auth-hdr">
+    <button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <span style="font-size:16px;font-weight:700;color:var(--text-primary);">利用規約</span>
+  </div>
+  <div class="pe-scroll" style="bottom:0;">
+    <div style="padding:20px 16px;font-size:13px;color:var(--text-secondary);line-height:1.9;">
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:16px;">CUSTOM GARAGE 利用規約</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:20px;">最終更新日：2026年3月26日</div>
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第1条（総則）</div>
+      本規約は、CUSTOM GARAGE（以下「本サービス」）の利用に関する条件を定めるものです。ユーザーは本規約に同意の上、本サービスを利用するものとします。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第2条（サービス内容）</div>
+      本サービスは、カスタム車両およびカーパーツを専門とするC2C型フリマアプリケーションです。ユーザー間の車両・パーツの売買の場を提供します。運営は売買取引の当事者とはなりません。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第3条（登録・アカウント）</div>
+      ① 本サービスの利用には会員登録が必要です。<br>
+      ② 登録情報は正確かつ最新の情報を入力してください。<br>
+      ③ 1人につき1アカウントとします。<br>
+      ④ アカウントの譲渡・貸与は禁止します。<br>
+      ⑤ 18歳未満の方は保護者の同意を得た上でご利用ください。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第4条（出品・売買）</div>
+      ① 出品者は正確な商品情報を掲載する義務を負います。<br>
+      ② 虚偽記載・隠蔽は禁止します。<br>
+      ③ 売買成立後のキャンセルは原則として認めません。<br>
+      ④ 手数料：取引成立時に販売価格の3.5%を手数料として申し受けます。<br>
+      ⑤ 盗難車・改ざん車両の出品は厳禁です。発覚した場合は即アカウント停止・警察への通報を行います。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第5条（陸送サービス）</div>
+      ① 本サービスが提携する陸送会社を通じて車両の輸送手配を行います。<br>
+      ② 陸送費用は車両代金と合算して請求します。<br>
+      ③ 輸送中の事故・損傷については提携陸送会社の約款に従います。<br>
+      ④ 陸送の申し込み後、運営よりご連絡いたします。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第6条（禁止事項）</div>
+      以下の行為を禁止します。<br>
+      ・法令または公序良俗に反する行為<br>
+      ・他のユーザーへの嫌がらせ・誹謗中傷<br>
+      ・虚偽情報の掲載<br>
+      ・本サービス外での直接取引の誘導<br>
+      ・スパム・宣伝目的の投稿<br>
+      ・本サービスのシステムへの不正アクセス<br>
+      ・反社会的勢力との関係がある行為
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第7条（免責事項）</div>
+      ① 運営はユーザー間のトラブルについて原則として責任を負いません。<br>
+      ② 天災・通信障害等による損害について責任を負いません。<br>
+      ③ 本サービスの一時停止・終了により生じた損害について責任を負いません。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第8条（規約の変更）</div>
+      運営は必要に応じて本規約を変更できるものとします。変更後も本サービスを継続利用した場合、変更に同意したものとみなします。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">第9条（準拠法・管轄）</div>
+      本規約は日本法に準拠し、東京地方裁判所を第一審の専属的合意管轄裁判所とします。
+
+      <div style="height:40px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screenPrivacy" style="background:var(--bg) !important;">
+  <div class="auth-hdr">
+    <button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <span style="font-size:16px;font-weight:700;color:var(--text-primary);">プライバシーポリシー</span>
+  </div>
+  <div class="pe-scroll" style="bottom:0;">
+    <div style="padding:20px 16px;font-size:13px;color:var(--text-secondary);line-height:1.9;">
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:16px;">プライバシーポリシー</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:20px;">最終更新日：2026年3月26日</div>
+
+      CUSTOM GARAGEは、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">1. 収集する情報</div>
+      ・氏名・ユーザー名・メールアドレス<br>
+      ・プロフィール写真<br>
+      ・住所（発送・受取用）<br>
+      ・支払い・振込情報<br>
+      ・出品・購入・閲覧履歴<br>
+      ・チャットメッセージ<br>
+      ・デバイス情報・IPアドレス<br>
+      ・運転免許証・車検証（本人確認用）
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">2. 利用目的</div>
+      ・本サービスの提供・改善<br>
+      ・ユーザー間取引の仲介<br>
+      ・陸送手配・配送管理<br>
+      ・本人確認・不正防止<br>
+      ・カスタマーサポート<br>
+      ・法令上の義務の履行
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">3. 第三者提供</div>
+      以下の場合を除き、個人情報を第三者に提供しません。<br>
+      ・ユーザーの同意がある場合<br>
+      ・法令に基づく開示要請<br>
+      ・提携陸送会社への輸送に必要な情報の提供<br>
+      ・決済処理のための金融機関への提供
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">4. データの保存</div>
+      個人情報はGoogle Firebase（データセンター：東京リージョン）に保存します。Googleのセキュリティ基準に従い、適切に保護します。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">5. Cookieの使用</div>
+      本サービスはログイン状態の維持のためCookieおよびローカルストレージを使用します。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">6. 開示・訂正・削除</div>
+      ご自身の個人情報の開示・訂正・削除をご希望の場合は、お問い合わせフォームよりご連絡ください。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">7. 未成年者</div>
+      18歳未満の方が本サービスを利用する場合は、保護者の同意が必要です。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">8. 変更について</div>
+      本ポリシーは予告なく変更することがあります。重要な変更の場合はアプリ内でお知らせします。
+
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:20px 0 8px;">9. お問い合わせ</div>
+      プライバシーに関するお問い合わせは、アプリ内のお問い合わせフォームよりご連絡ください。
+
+      <div style="height:40px;"></div>
+    </div>
+  </div>
+</div>
+<div class="screen" id="screenGuide" style="background:var(--bg) !important;"><div class="auth-hdr"><button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">ガイド・お問い合わせ</span></div><div class="pe-scroll" style="bottom:0;"><div class="pe-inner"><!-- よくある質問 --><div class="pe-sec-label">よくある質問（FAQ）</div><div class="pe-card"><div id="faqList"></div></div><!-- お問い合わせ --><div class="pe-sec-label">お問い合わせ</div><div class="pe-card"><div class="pe-row"><div class="pe-label">お問い合わせ内容</div><select class="pe-input" id="inquiry_type" class="pe-input sel"><option value="">選択してください</option><option>アカウントについて</option><option>出品・売却について</option><option>購入・決済について</option><option>トラブル・クレーム</option><option>不正利用の報告</option><option>その他</option></select></div><div class="pe-row"><div class="pe-label">お問い合わせ内容の詳細</div><textarea class="pe-textarea" id="inquiry_body" placeholder="お問い合わせ内容を詳しく記入してください。" maxlength="500" style="min-height:100px;"></textarea></div><div class="pe-row pe-row-last"><div class="pe-label">メールアドレス（返信先）</div><input class="pe-input" type="email" id="inquiry_email" placeholder="example@email.com"></div></div><div style="padding:0 12px 16px;"><button onclick="sendInquiry()" style="width:100%;height:50px;border-radius:14px;background:var(--text-primary);color:#fff;border:none;font-family:var(--font-body);font-size:15px;font-weight:700;cursor:pointer;">送信する</button></div><!-- 利用規約・プライバシー --><div class="pe-sec-label">規約・ポリシー</div><div class="pe-card"><div class="pe-row" style="cursor:pointer;" onclick="goTo('terms')"><div style="flex:1;font-size:13px;font-weight:500;color:var(--text-primary);">利用規約</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;color:var(--text-muted);"><polyline points="9 18 15 12 9 6"/></svg></div><div class="pe-row" style="cursor:pointer;border-bottom:none;" onclick="goTo('privacy')"><div style="flex:1;font-size:13px;font-weight:500;color:var(--text-primary);">プライバシーポリシー</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;color:var(--text-muted);"><polyline points="9 18 15 12 9 6"/></svg></div></div><div style="height:16px;"></div></div></div>
 </div><!-- ══ 閲覧履歴 ══ -->
 <div class="screen" id="screenHistory" style="background:var(--bg) !important;"><div class="auth-hdr"><button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">閲覧履歴</span><button onclick="clearHistory()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--accent);font-weight:600;cursor:pointer;background:none;border:none;font-family:var(--font-body);">全て削除</button></div><div class="pe-scroll" style="bottom:0;" id="historyList"></div>
 </div><!-- ══ トーク一覧 ══ -->
@@ -2301,6 +2424,83 @@ async function saveUserProfile(uid, uname, email){
 }
 
 
+
+// ══ リアルタイムカウント（Firestoreリスナー） ══
+let _countUnsubscribes = [];
+
+function subscribeRealtimeCounts(uid){
+  // 既存リスナーを解除
+  _countUnsubscribes.forEach(fn => fn());
+  _countUnsubscribes = [];
+  if(!uid || !window._fbDb) return;
+
+  // 出品数
+  const unsubSell = window._fbDb.collection('listings')
+    .where('sellerId','==',uid)
+    .onSnapshot(snap => {
+      const cnt = document.getElementById('myListingCount');
+      if(cnt) cnt.textContent = snap.size + '件';
+      const stat = document.getElementById('mpStatSell');
+      if(stat) stat.textContent = snap.size;
+    }, e => console.log('count error:', e));
+  _countUnsubscribes.push(unsubSell);
+
+  // 購入数
+  const unsubBuy = window._fbDb.collection('listings')
+    .where('buyerId','==',uid)
+    .onSnapshot(snap => {
+      const cnt = document.getElementById('myPurchaseCount');
+      if(cnt) cnt.textContent = snap.size + '件';
+      const stat = document.getElementById('mpStatBuy');
+      if(stat) stat.textContent = snap.size;
+    }, e => console.log('count error:', e));
+  _countUnsubscribes.push(unsubBuy);
+
+  // 下書き数
+  const unsubDraft = window._fbDb.collection('drafts')
+    .where('sellerId','==',uid)
+    .onSnapshot(snap => {
+      const cnt = document.getElementById('myDraftCount');
+      if(cnt) cnt.textContent = snap.size + '件';
+    }, e => console.log('count error:', e));
+  _countUnsubscribes.push(unsubDraft);
+
+  // 評価数・評価点（リアルタイム）
+  const unsubRating = window._fbDb.collection('reviews')
+    .where('toUid','==',uid)
+    .onSnapshot(snap => {
+      const ratings = snap.docs.map(d => d.data().rating || 0);
+      const count = ratings.length;
+      const avg = count > 0 ? (ratings.reduce((a,b)=>a+b,0)/count) : 0;
+      const stat = document.getElementById('mpStatRating');
+      const score = document.getElementById('mpStatScore');
+      const stars = document.getElementById('mpStars');
+      const rcount = document.getElementById('mpRcount');
+      const rpill = document.getElementById('mpRpill');
+      if(stat) stat.textContent = count;
+      if(score) score.textContent = count > 0 ? avg.toFixed(1) : '-';
+      if(stars) stars.textContent = '★ ' + avg.toFixed(1);
+      if(rcount) rcount.textContent = '評価 ' + count + '件';
+      if(rpill) rpill.style.display = (count >= 10 && avg >= 4.5) ? 'inline-block' : 'none';
+    }, e => console.log('rating count error:', e));
+  _countUnsubscribes.push(unsubRating);
+
+  // トーク未読数（リアルタイム）
+  const unsubTalk = window._fbDb.collection('talks')
+    .where('members','array-contains',uid)
+    .onSnapshot(snap => {
+      let unread = 0;
+      snap.docs.forEach(d => {
+        const data = d.data();
+        unread += data.unreadCount?.[uid] || 0;
+      });
+      const badge = document.getElementById('talkNavBadge');
+      const badge2 = document.getElementById('talkBadge');
+      if(badge){ badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
+      if(badge2){ badge2.textContent = unread; badge2.style.display = unread > 0 ? 'flex' : 'none'; }
+    }, e => console.log('talk count error:', e));
+  _countUnsubscribes.push(unsubTalk);
+}
 function updateMypageUI(data){
   const set = (id, val) => { const el=document.getElementById(id); if(el && val !== undefined) el.textContent = val; };
 
@@ -2684,6 +2884,7 @@ async function doLogin(){
     await loadUserProfile(userCredential.user.uid);
     await loadFavoritesFromFirestore(userCredential.user.uid);
     await loadGarageList();
+    subscribeRealtimeCounts(userCredential.user.uid);
     if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
     showHome();
   }catch(e){
@@ -2800,6 +3001,7 @@ goTo = function(target, carId){
     myListings:'screenMyListings', myPurchases:'screenMyPurchases',
     myDrafts:'screenMyDrafts', paymentMethod:'screenPaymentMethod',
     guide:'screenGuide', history:'screenHistory',
+    terms:'screenTerms', privacy:'screenPrivacy',
     talkList:'screenTalkList', chat:'screenChat',
   };
 
@@ -4150,6 +4352,8 @@ function timeAgo(date){
 
 // ── ログアウト ──
 async function doLogout(){
+  _countUnsubscribes.forEach(fn => fn());
+  _countUnsubscribes = [];
   if(!confirm('ログアウトしますか？')) return;
   try{
     if(window._fbSignOut && window._fbAuth){
