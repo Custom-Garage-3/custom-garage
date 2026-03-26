@@ -3213,10 +3213,16 @@ async function doLogin(){
     showHome();
   }catch(e){
     if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
+    console.log('Login error code:', e.code, e.message);
     let msg = '⚠️ メールアドレスまたはパスワードが正しくありません';
     if(e.code === 'auth/too-many-requests') msg = '⚠️ ログイン試行が多すぎます。しばらく待ってください';
     if(e.code === 'auth/network-request-failed') msg = '⚠️ ネットワークエラーです。接続を確認してください';
-    if(errEl){ errEl.textContent = msg; errEl.style.display='block'; }
+    if(e.code === 'auth/invalid-credential') msg = '⚠️ メールアドレスまたはパスワードが正しくありません';
+    if(e.code === 'auth/user-not-found') msg = '⚠️ このメールアドレスは登録されていません';
+    if(e.code === 'auth/wrong-password') msg = '⚠️ パスワードが正しくありません';
+    if(e.code === 'auth/invalid-email') msg = '⚠️ メールアドレスの形式が正しくありません';
+    if(e.code === 'auth/user-disabled') msg = '⚠️ このアカウントは無効化されています';
+    if(errEl){ errEl.textContent = msg + '（' + (e.code||'unknown') + '）'; errEl.style.display='block'; }
   }
 }
 
