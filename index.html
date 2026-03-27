@@ -52,8 +52,12 @@
           },{merge:true}).catch(()=>{});
         }
         // まだlaunch画面なら自動でホームへ
+        // ラウンチ画面またはログイン画面にいる場合、自動でホームへ
         const launch = document.getElementById('screenLaunch');
-        if(launch && launch.classList.contains('screen-launch-default')){
+        const loginScr = document.getElementById('screenLogin');
+        if(launch && (launch.classList.contains('screen-launch-default') || launch.classList.contains('active'))){
+          showHome();
+        } else if(loginScr && loginScr.classList.contains('active')){
           showHome();
         }
       }catch(e){ console.log('自動ログイン復元エラー:', e); }
@@ -1458,7 +1462,7 @@ select.pe-input, select.flt-range-sel {
       <!-- 記憶 & パスワード忘れ -->
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="login_remember" style="width:16px;height:16px;accent-color:#A855F7;flex-shrink:0;">
+          <input type="checkbox" id="login_remember" checked style="width:16px;height:16px;accent-color:#A855F7;flex-shrink:0;">
           <span style="font-size:12px;color:rgba(255,255,255,.5);">ログイン情報を保存</span>
         </label>
         <div style="font-size:12px;color:#C084FC;font-weight:600;cursor:pointer;touch-action:manipulation;" onclick="openForgotPassword()">パスワードを忘れた方</div>
@@ -1476,7 +1480,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.3</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.4</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
@@ -3242,15 +3246,41 @@ function toggleLoginPw(){
 function loadSavedLogin(){
   try{
     const saved = localStorage.getItem('cg_saved_login');
-    if(saved){
-      const { email } = JSON.parse(saved);
-      const eEl = document.getElementById('login_email');
-      const rEl = document.getElementById('login_remember');
-      // メールアドレスのみ復元（パスワードはセキュリティのため復元しない）
-      if(eEl && email) eEl.value = email;
-      if(rEl) rEl.checked = true;
+    if(!saved) return;
+    const { email, pw } = JSON.parse(saved);
+    const eEl = document.getElementById('login_email');
+    const pEl = document.getElementById('login_pw');
+    const rEl = document.getElementById('login_remember');
+    if(eEl && email) eEl.value = email;
+    if(pEl && pw){
+      try{ pEl.value = atob(pw); }catch(e){}
+    }
+    if(rEl) rEl.checked = true;
+    // 保存データがあれば自動ログインを試みる
+    if(email && pw && window._fbSignIn && window._fbAuth){
+      autoLoginIfSaved(email, atob(pw));
     }
   }catch(e){}
+}
+
+async function autoLoginIfSaved(email, password){
+  // すでにログイン済みなら何もしない
+  if(window._fbAuth?.currentUser) return;
+  try{
+    const btn = document.querySelector('#screenLogin .login-btn');
+    if(btn){ btn.disabled=true; btn.textContent='自動ログイン中...'; }
+    const cred = await window._fbSignIn(window._fbAuth, email, password);
+    try{ await loadUserProfile(cred.user.uid); }catch(e){}
+    try{ await loadFavoritesFromFirestore(cred.user.uid); }catch(e){}
+    try{ await loadGarageList(); }catch(e){}
+    try{ subscribeRealtimeCounts(cred.user.uid); }catch(e){}
+    showHome();
+  }catch(e){
+    // 自動ログイン失敗（パスワード変更済み等）→ 保存データを削除してフォームに戻す
+    localStorage.removeItem('cg_saved_login');
+    const btn = document.querySelector('#screenLogin .login-btn');
+    if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
+  }
 }
 
 // ━━ パスワードリセット ━━
@@ -3330,7 +3360,8 @@ async function doLogin(){
 
   // ── STEP2: ログイン成功後の処理（失敗してもホームへ遷移） ──
   if(remember){
-    localStorage.setItem('cg_saved_login', JSON.stringify({email}));
+    // パスワードをbtoaで難読化して保存（完全な暗号化ではないが入力補助として利用）
+    localStorage.setItem('cg_saved_login', JSON.stringify({email, pw: btoa(password)}));
   } else {
     localStorage.removeItem('cg_saved_login');
   }
