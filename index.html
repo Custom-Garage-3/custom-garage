@@ -16,6 +16,8 @@
 <link rel="apple-touch-icon" sizes="167x167" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><!-- ══ Firebase compat（file://でも動く版）══ -->
+<!-- Stripe.js v3 -->
+<script src="https://js.stripe.com/v3/"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -28,6 +30,19 @@
     messagingSenderId: "131770408633",
     appId: "1:131770408633:web:c38a7565d6b64c19e18568"
   });
+
+  // ══ Stripe設定 ══
+  // ⚠️ テスト用公開キーを設定してください（pk_test_xxx）
+  // 本番時は pk_live_xxx に変更すること
+  window.STRIPE_PK = 'pk_test_REPLACE_WITH_YOUR_KEY';
+
+  // Cloud Functions URL（Blaze プラン有効化後に設定）
+  // 例: https://us-central1-custom-garage-2e4bf.cloudfunctions.net
+  window.FUNCTIONS_BASE = '';
+
+  // 開発用ログ（本番では非表示）
+  const _DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  window._log = (...a) => { if(_DEV) window._log(...a); };
 
   window._fbAuth    = firebase.auth();
   window._fbDb      = firebase.firestore();
@@ -65,7 +80,7 @@
         } else if(loginScr && loginScr.classList.contains('active')){
           showHome();
         }
-      }catch(e){ console.log('自動ログイン復元エラー:', e); }
+      }catch(e){ window._log('自動ログイン復元エラー:', e); }
     }
   });
 
@@ -1515,7 +1530,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.10</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.12-stripe</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
@@ -1552,8 +1567,32 @@ select.pe-input, select.flt-range-sel {
   </div></div>
 </div>
 
-<div class="screen" id="screenCheckout"><div class="auth-hdr"><button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">購入手続き</span></div><div class="co-scroll"><!-- 商品サマリー --><div class="co-prod-card"><img class="co-prod-img" id="coProdImg" src="" alt=""><div class="co-prod-body"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;" id="coProdMaker"></div><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:10px;" id="coProdName"></div><div class="co-price-row"><span class="co-price-label">販売価格</span><span class="co-price-val" id="coPriceVal"></span></div><div class="co-price-row"><span class="co-price-label">決済手数料</span><span class="co-price-val">¥0</span></div><div class="co-price-row"><span class="co-price-label" style="font-weight:700;color:var(--text-primary);">お支払い合計</span><span class="co-price-total" id="coTotal"></span></div></div></div><!-- 支払い方法 --><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:10px;">お支払い方法</div><div class="pay-tabs"><button class="pay-tab on" onclick="selectPayTab(this,'card')">💳 カード</button><button class="pay-tab" onclick="selectPayTab(this,'bank')">🏦 銀行振込</button></div><!-- カード入力 --><div id="payCard"><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">カード情報</div><div class="card-wrap"><div class="card-f"><div class="card-lbl">カード番号</div><input class="card-inp" id="cardNum" placeholder="4242 4242 4242 4242" maxlength="19" oninput="fmtCard(this)"></div><div class="card-row"><div class="card-f"><div class="card-lbl">有効期限</div><input class="card-inp" placeholder="MM / YY" maxlength="7" oninput="fmtExpiry(this)"></div><div class="card-f"><div class="card-lbl">セキュリティコード</div><input class="card-inp" placeholder="CVC" maxlength="4" type="password"></div></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:6px;">テスト用：<span style="font-family:var(--font-num);font-weight:600;">4242 4242 4242 4242</span> / 任意の期限・CVC
-      </div></div><!-- 銀行振込 --><div id="payBank" style="display:none;"><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">振込先口座</div><div class="bank-info"><div class="bank-row"><span class="bank-label">銀行名</span><span class="bank-val">三菱UFJ銀行</span></div><div class="bank-row"><span class="bank-label">支店名</span><span class="bank-val">渋谷支店（045）</span></div><div class="bank-row"><span class="bank-label">口座種別</span><span class="bank-val">普通</span></div><div class="bank-row"><span class="bank-label">口座番号</span><span class="bank-val">1234567</span></div><div class="bank-row"><span class="bank-label">口座名義</span><span class="bank-val">カ）カスタムガレージ</span></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.6;">購入確定後3営業日以内にご入金ください。入金確認後に取引が成立します。振込手数料はご負担ください。</div></div><!-- 引き渡し場所 --><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:14px 0 8px;">現車確認・引き渡し場所</div><div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;"><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:2px;">田中 武</div><div style="font-size:12px;color:var(--text-secondary);">〒503-0000 岐阜県大垣市 ○○町1-2-3</div><div style="font-size:11px;color:var(--accent);font-weight:600;margin-top:8px;cursor:pointer;">変更する</div></div><div style="height:8px;"></div></div><div class="co-bar"><div class="co-sec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>SSL暗号化通信・Stripe決済で安全に保護</div><button class="co-submit" id="coBtn" onclick="doPayment()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:16px;height:16px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span id="coAmtLabel">支払う</span></button></div>
+<div class="screen" id="screenCheckout"><div class="auth-hdr"><button class="auth-back" onclick="goBack()"><svg class="ic-back" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button><span style="font-size:16px;font-weight:700;color:var(--text-primary);">購入手続き</span></div><div class="co-scroll"><!-- 商品サマリー --><div class="co-prod-card"><img class="co-prod-img" id="coProdImg" src="" alt=""><div class="co-prod-body"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;" id="coProdMaker"></div><div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:10px;" id="coProdName"></div><div class="co-price-row"><span class="co-price-label">販売価格</span><span class="co-price-val" id="coPriceVal"></span></div><div class="co-price-row"><span class="co-price-label">決済手数料</span><span class="co-price-val">¥0</span></div><div class="co-price-row"><span class="co-price-label" style="font-weight:700;color:var(--text-primary);">お支払い合計</span><span class="co-price-total" id="coTotal"></span></div></div></div><!-- 支払い方法 --><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:10px;">お支払い方法</div><div class="pay-tabs"><button class="pay-tab on" onclick="selectPayTab(this,'card')">💳 カード</button><button class="pay-tab" onclick="selectPayTab(this,'bank')">🏦 銀行振込</button></div><!-- Stripe Elements カード入力 -->
+<div id="payCard">
+  <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">カード情報</div>
+
+  <!-- Stripe未設定時の案内 -->
+  <div id="stripeNotConfigured" style="display:none;background:#FFF8E1;border:1.5px solid #F59E0B;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+    <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:4px;">⚙️ Stripe設定が必要です</div>
+    <div style="font-size:11px;color:#92400E;line-height:1.7;">
+      1. <a href="https://stripe.com/jp" target="_blank" style="color:#D97706;font-weight:600;">stripe.com</a> でアカウント作成<br>
+      2. テスト用公開キー（pk_test_xxx）を取得<br>
+      3. index.html の <code>STRIPE_PK</code> に設定
+    </div>
+  </div>
+
+  <!-- Stripe Elements マウント先 -->
+  <div id="stripe-card-element" style="background:#1e1e35;border:1.5px solid #333;border-radius:10px;padding:14px 12px;min-height:46px;"></div>
+  <div id="stripe-card-errors" style="color:#ef4444;font-size:12px;margin-top:6px;min-height:18px;"></div>
+
+  <!-- テストカード案内 -->
+  <div id="stripeTestHint" style="margin-top:8px;background:#0d1117;border-radius:8px;padding:10px 12px;font-size:11px;color:#888;line-height:1.8;">
+    🧪 テスト用カード番号<br>
+    成功: <span style="font-family:monospace;color:#22c55e;font-weight:600;">4242 4242 4242 4242</span><br>
+    失敗: <span style="font-family:monospace;color:#ef4444;font-weight:600;">4000 0000 0000 0002</span><br>
+    有効期限: 任意の未来の日付 / CVC: 任意の3桁
+  </div>
+</div><!-- 銀行振込 --><div id="payBank" style="display:none;"><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">振込先口座</div><div class="bank-info"><div class="bank-row"><span class="bank-label">銀行名</span><span class="bank-val">三菱UFJ銀行</span></div><div class="bank-row"><span class="bank-label">支店名</span><span class="bank-val">渋谷支店（045）</span></div><div class="bank-row"><span class="bank-label">口座種別</span><span class="bank-val">普通</span></div><div class="bank-row"><span class="bank-label">口座番号</span><span class="bank-val">1234567</span></div><div class="bank-row"><span class="bank-label">口座名義</span><span class="bank-val">カ）カスタムガレージ</span></div></div><div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.6;">購入確定後3営業日以内にご入金ください。入金確認後に取引が成立します。振込手数料はご負担ください。</div></div><!-- 引き渡し場所 --><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin:14px 0 8px;">現車確認・引き渡し場所</div><div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;"><div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:2px;">田中 武</div><div style="font-size:12px;color:var(--text-secondary);">〒503-0000 岐阜県大垣市 ○○町1-2-3</div><div style="font-size:11px;color:var(--accent);font-weight:600;margin-top:8px;cursor:pointer;">変更する</div></div><div style="height:8px;"></div></div><div class="co-bar"><div class="co-sec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>SSL暗号化通信・Stripe決済で安全に保護</div><button class="co-submit" id="coBtn" onclick="doPayment()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:16px;height:16px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span id="coAmtLabel">支払う</span></button></div>
 </div><!-- ══ 購入完了 ══ -->
 <div class="screen" id="screenPurchaseSuccess"><div class="success-full"><div class="suc-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div style="font-size:22px;font-weight:700;color:var(--text-primary);">購入完了！</div><div style="font-family:var(--font-num);font-size:28px;font-weight:700;color:var(--accent);" id="sucAmount"></div><div style="font-size:13px;color:var(--text-secondary);line-height:1.7;" id="sucCarName"></div><div class="suc-note">📦 出品者に購入通知が送られました。<br>💬 トーク画面から出品者と連絡を取り、現車確認・引き渡しの日程を調整してください。<br>🔒 お支払いは取引完了まで安全に保管（エスクロー）されます。
     </div><button class="suc-btn" onclick="goTo('home')">ホームに戻る</button></div>
@@ -2023,7 +2062,7 @@ async function openUserProfile(uid){
       </div>`;
     document.body.appendChild(sheet);
     requestAnimationFrame(()=>{ sheet.style.transform='translateY(0)'; });
-  }catch(e){ console.log('profile error:', e); }
+  }catch(e){ window._log('profile error:', e); }
 }
 
 function closeUserProfile(){
@@ -2096,7 +2135,7 @@ function closeReviewModal(){
 }
 
 // ══ 購入フロー・取引ステータス管理 ══
-async function completePurchase(listingId, sellerId, price){
+async function completePurchase(listingId, sellerId, price, paymentIntentId=''){
   const user = window._fbAuth?.currentUser;
   if(!user){ alert('ログインが必要です'); return; }
   try{
@@ -2110,6 +2149,8 @@ async function completePurchase(listingId, sellerId, price){
       sellerId,
       price,
       status: 'paid',       // paid → shipping → delivered → completed
+      paymentIntentId,      // Stripe PaymentIntent ID（本番時に設定）
+      paymentMethod: paymentIntentId ? 'stripe' : 'demo',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
@@ -2185,7 +2226,7 @@ async function loadListings(){
     carsData.sort((a,b) => b.postedAt - a.postedAt);
     renderCards();
   } catch(e){
-    console.log('loadListings(active) error:', e.message, '→ 全件取得を試みます');
+    window._log('loadListings(active) error:', e.message, '→ 全件取得を試みます');
     // フォールバック: statusフィルタなしで全件取得
     try{
       const snap2 = await window._fbDb.collection('listings').limit(100).get();
@@ -2197,7 +2238,7 @@ async function loadListings(){
       carsData.sort((a,b) => b.postedAt - a.postedAt);
       renderCards();
     } catch(e2){
-      console.log('loadListings(all) error:', e2.message);
+      window._log('loadListings(all) error:', e2.message);
       carsData = [];
       if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:48px;height:48px;margin-bottom:12px;opacity:.3;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/></svg><div style="font-size:14px;font-weight:600;margin-bottom:6px;">読み込みに失敗しました</div><div style="font-size:12px;color:var(--accent);padding:8px;background:#FFF0EE;border-radius:8px;margin-top:8px;">'+e2.message+'</div></div>';
     }
@@ -2599,7 +2640,7 @@ async function populateDetailFromFirestore(id){
     _renderDetailCar(car, id);
   }catch(e){
     showToast('⚠️ 読み込みに失敗しました: '+e.message, 'var(--accent)');
-    console.log('populateDetailFromFirestore err:', e);
+    window._log('populateDetailFromFirestore err:', e);
   }
 }
 
@@ -3044,7 +3085,7 @@ function validateReg(){
 
 function launchNavigate(target){
   // launch画面を隠す
-  var launch = document.getElementById('screenLaunch');
+  let launch = document.getElementById('screenLaunch');
   if(launch){
     launch.style.display = 'none';
     launch.classList.remove('screen-launch-default','active');
@@ -3055,14 +3096,14 @@ function launchNavigate(target){
     
   });
   // 対象を表示
-  var map = {
+  let map = {
     'onboard':'screenOnboard',
     'login':'screenLogin',
     'register':'screenRegister'
   };
-  var screenId = map[target];
+  let screenId = map[target];
   if(screenId){
-    var el = document.getElementById(screenId);
+    let el = document.getElementById(screenId);
     if(el) el.classList.add('active');
   }
   screenStack = [target];
@@ -3097,17 +3138,15 @@ async function saveUserProfile(uid, uname, email){
         updatedAt: new Date().toISOString()
       }, { merge: true });
     } else {
-      // 新規ユーザー: 初期値で作成（空文字は入れない）
+      // 新規ユーザー: 初期値で作成
       await window._fbDb.collection('users').doc(uid).set({
-        username: uname,
-        email: email,
+        username: uname, email: email,
         createdAt: new Date().toISOString(),
-        balance: 0, points: 0,
-        sellCount: 0, buyCount: 0,
+        balance: 0, points: 0, sellCount: 0, buyCount: 0,
         ratingCount: 0, rating: 0
-      });
+      }, { merge: true });
     }
-  }catch(e){ console.log('プロフィール保存エラー:', e); }
+  }catch(e){ window._log('プロフィール保存エラー:', e); }
 }
 
 // ══ リアルタイムカウント（Firestoreリスナー） ══
@@ -3127,7 +3166,7 @@ function subscribeRealtimeCounts(uid){
       if(cnt) cnt.textContent = snap.size + '件';
       const stat = document.getElementById('mpStatSell');
       if(stat) stat.textContent = snap.size;
-    }, e => console.log('count error:', e));
+    }, e => window._log('count error:', e));
   _countUnsubscribes.push(unsubSell);
 
   // 購入数
@@ -3138,7 +3177,7 @@ function subscribeRealtimeCounts(uid){
       if(cnt) cnt.textContent = snap.size + '件';
       const stat = document.getElementById('mpStatBuy');
       if(stat) stat.textContent = snap.size;
-    }, e => console.log('count error:', e));
+    }, e => window._log('count error:', e));
   _countUnsubscribes.push(unsubBuy);
 
   // 下書き数
@@ -3147,7 +3186,7 @@ function subscribeRealtimeCounts(uid){
     .onSnapshot(snap => {
       const cnt = document.getElementById('myDraftCount');
       if(cnt) cnt.textContent = snap.size + '件';
-    }, e => console.log('count error:', e));
+    }, e => window._log('count error:', e));
   _countUnsubscribes.push(unsubDraft);
 
   // 評価数・評価点（リアルタイム）
@@ -3167,7 +3206,7 @@ function subscribeRealtimeCounts(uid){
       if(stars) stars.textContent = '★ ' + avg.toFixed(1);
       if(rcount) rcount.textContent = '評価 ' + count + '件';
       if(rpill) rpill.style.display = (count >= 10 && avg >= 4.5) ? 'inline-block' : 'none';
-    }, e => console.log('rating count error:', e));
+    }, e => window._log('rating count error:', e));
   _countUnsubscribes.push(unsubRating);
 
   // トーク未読数（リアルタイム）
@@ -3183,7 +3222,7 @@ function subscribeRealtimeCounts(uid){
       const badge2 = document.getElementById('talkBadge');
       if(badge){ badge.textContent = unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
       if(badge2){ badge2.textContent = unread; badge2.style.display = unread > 0 ? 'flex' : 'none'; }
-    }, e => console.log('talk count error:', e));
+    }, e => window._log('talk count error:', e));
   _countUnsubscribes.push(unsubTalk);
 }
 function updateMypageUI(data){
@@ -3243,7 +3282,7 @@ async function loadUserProfile(uid){
         if(addrSub) addrSub.textContent = (data.addrPref + ' ' + (data.addrCity||'')).trim();
       }
           }
-  }catch(e){ console.log('プロフィール読み込みエラー:', e); }
+  }catch(e){ window._log('プロフィール読み込みエラー:', e); }
 }
 
 // お気に入りをFirestoreに保存
@@ -3254,7 +3293,7 @@ async function saveFavoritesToFirestore(){
     await window._fbDb.collection('users').doc(user.uid).set({
       favorites: [...favorites]
     }, { merge: true });
-  }catch(e){ console.log('favorites save error:', e); }
+  }catch(e){ window._log('favorites save error:', e); }
 }
 
 // お気に入りをFirestoreから読み込み
@@ -3267,7 +3306,7 @@ async function loadFavoritesFromFirestore(uid){
         favorites = new Set(data.favorites);
               }
     }
-  }catch(e){ console.log('favorites load error:', e); }
+  }catch(e){ window._log('favorites load error:', e); }
 }
 
 // ── メール認証 ──
@@ -3622,7 +3661,7 @@ async function doLogin(){
     userCredential = await window._fbSignIn(window._fbAuth, email, password);
   }catch(e){
     if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
-    console.log('Auth error:', e.code, e.message);
+    window._log('Auth error:', e.code, e.message);
     // 保存された古いパスワードを削除（認証失敗時）
     localStorage.removeItem('cg_saved_login');
     let msg = '';
@@ -3651,10 +3690,10 @@ async function doLogin(){
   if(btn){ btn.disabled=false; btn.textContent='ログイン'; }
 
   // データ読み込みはエラーになっても続行
-  try{ await loadUserProfile(userCredential.user.uid); }catch(e){ console.log('profile err:', e); }
-  try{ await loadFavoritesFromFirestore(userCredential.user.uid); }catch(e){ console.log('fav err:', e); }
-  try{ await loadGarageList(); }catch(e){ console.log('garage err:', e); }
-  try{ subscribeRealtimeCounts(userCredential.user.uid); }catch(e){ console.log('count err:', e); }
+  try{ await loadUserProfile(userCredential.user.uid); }catch(e){ window._log('profile err:', e); }
+  try{ await loadFavoritesFromFirestore(userCredential.user.uid); }catch(e){ window._log('fav err:', e); }
+  try{ await loadGarageList(); }catch(e){ window._log('garage err:', e); }
+  try{ subscribeRealtimeCounts(userCredential.user.uid); }catch(e){ window._log('count err:', e); }
 
   showHome();
 }
@@ -3685,25 +3724,155 @@ function selectPayTab(el,method){
 }
 function fmtCard(el){let v=el.value.replace(/\D/g,'').substring(0,16);el.value=v.replace(/(.{4})/g,'$1 ').trim();}
 function fmtExpiry(el){let v=el.value.replace(/\D/g,'').substring(0,4);if(v.length>=2)v=v.substring(0,2)+' / '+v.substring(2);el.value=v;}
-async function doPayment(){
-  const btn=document.getElementById('coBtn');
-  btn.innerHTML='<div class="spin-sm"></div> 処理中...';
-  btn.disabled=true;
-  try{
-    const car = carsData.find(c=>String(c.id)===String(currentCarId));
-    if(car && window._fbAuth?.currentUser){
-      await completePurchase(String(car.id), car.sellerId||'', car.priceVal||0);
-    } else {
-      document.getElementById('screenCheckout').classList.remove('active');
-      document.getElementById('screenPurchaseSuccess').classList.add('active');
-      screenStack.push('purchaseSuccess');
-    }
-  }catch(e){
-    showToast('⚠️ 購入処理に失敗しました: '+e.message, 'var(--accent)');
-  }finally{
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:16px;height:16px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span id="coAmtLabel">支払う</span>';
-    btn.disabled=false;
+// ── Stripe Elements 初期化 ──
+let _stripe = null;
+let _stripeElements = null;
+let _stripeCardElement = null;
+
+function initStripeElements() {
+  const pk = window.STRIPE_PK || '';
+  const mountEl = document.getElementById('stripe-card-element');
+  const notConfigEl = document.getElementById('stripeNotConfigured');
+  if(!mountEl) return;
+
+  // 未設定の場合
+  if(!pk || pk.includes('REPLACE') || typeof Stripe === 'undefined') {
+    if(notConfigEl) notConfigEl.style.display = 'block';
+    if(mountEl) mountEl.style.background = '#111';
+    return;
   }
+  if(notConfigEl) notConfigEl.style.display = 'none';
+
+  // 既に初期化済みならスキップ
+  if(_stripeCardElement) return;
+
+  try {
+    _stripe = Stripe(pk);
+    _stripeElements = _stripe.elements({
+      appearance: {
+        theme: 'night',
+        variables: {
+          colorPrimary: '#E8412A',
+          colorBackground: '#1e1e35',
+          colorText: '#ffffff',
+          colorTextSecondary: '#aaa',
+          colorDanger: '#ef4444',
+          fontFamily: 'Noto Sans JP, Helvetica Neue, sans-serif',
+          borderRadius: '8px',
+          spacingUnit: '4px',
+        },
+        rules: {
+          '.Input': { border: '1.5px solid #444', padding: '10px 12px' },
+          '.Input:focus': { border: '1.5px solid #E8412A', boxShadow: 'none' },
+          '.Label': { fontSize: '12px', color: '#aaa', marginBottom: '6px' },
+        }
+      }
+    });
+    _stripeCardElement = _stripeElements.create('card', {
+      hidePostalCode: true,
+    });
+    _stripeCardElement.mount('#stripe-card-element');
+    _stripeCardElement.on('change', e => {
+      const errEl = document.getElementById('stripe-card-errors');
+      if(errEl) errEl.textContent = e.error ? e.error.message : '';
+    });
+    window._log('Stripe Elements initialized');
+  } catch(e) {
+    window._log('Stripe init error:', e);
+    if(notConfigEl) { notConfigEl.style.display = 'block'; }
+  }
+}
+
+// チェックアウト画面を開いた時にStripeを初期化
+const _origOpenCheckout = openCheckout;
+function openCheckout() {
+  _origOpenCheckout();
+  setTimeout(initStripeElements, 200);
+}
+
+async function doPayment() {
+  const btn = document.getElementById('coBtn');
+  const car = carsData.find(c => String(c.id) === String(currentCarId));
+  const user = _getUser();
+
+  if(!car || !user) {
+    showToast('⚠️ 情報が不足しています。再度お試しください', 'var(--accent)');
+    return;
+  }
+
+  btn.innerHTML = '<div class="spin-sm"></div> 決済処理中...';
+  btn.disabled = true;
+
+  try {
+    // ── CASE 1: Stripe + Cloud Functions が設定済み ──
+    if(_stripe && _stripeCardElement && window.FUNCTIONS_BASE) {
+      await _doStripePayment(car, user);
+      return;
+    }
+
+    // ── CASE 2: Stripe設定済みだがバックエンドなし（テストモード） ──
+    if(_stripe && _stripeCardElement) {
+      // クライアント側トークン化のみ（実際の課金なし・テスト確認用）
+      const { token, error } = await _stripe.createToken(_stripeCardElement);
+      if(error) {
+        const errEl = document.getElementById('stripe-card-errors');
+        if(errEl) errEl.textContent = error.message;
+        showToast('⚠️ ' + error.message, 'var(--accent)');
+        return;
+      }
+      window._log('Stripe token created:', token.id, '（バックエンド未設定のためFirestore記録のみ）');
+      await completePurchase(String(car.id), car.sellerId||'', car.priceVal||0);
+      return;
+    }
+
+    // ── CASE 3: 未設定（デモモード） ──
+    showToast('⚠️ Stripeが未設定です。stripe_setup_guide.htmlを参照してください', '#F59E0B');
+    window._log('Stripe未設定 - デモモードで続行');
+    await completePurchase(String(car.id), car.sellerId||'', car.priceVal||0);
+
+  } catch(e) {
+    window._log('doPayment error:', e);
+    showToast('⚠️ 決済に失敗しました: ' + e.message, 'var(--accent)');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:16px;height:16px;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> ' + (document.getElementById('coAmtLabel')?.textContent || '支払う');
+  }
+}
+
+// Cloud Functions経由の本番Stripe決済
+async function _doStripePayment(car, user) {
+  // 1. Cloud Functions で PaymentIntent 作成
+  const res = await fetch(`${window.FUNCTIONS_BASE}/createPaymentIntent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${await user.getIdToken()}`
+    },
+    body: JSON.stringify({
+      listingId: String(car.id),
+      amount: car.priceVal
+    })
+  });
+
+  if(!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || '決済の準備に失敗しました');
+  }
+
+  const { clientSecret } = await res.json();
+
+  // 2. Stripe でカード決済確認
+  const { paymentIntent, error } = await _stripe.confirmCardPayment(clientSecret, {
+    payment_method: { card: _stripeCardElement }
+  });
+
+  if(error) throw new Error(error.message);
+  if(paymentIntent.status !== 'succeeded') throw new Error('決済が完了しませんでした');
+
+  window._log('Payment succeeded:', paymentIntent.id);
+
+  // 3. Firestore に取引記録
+  await completePurchase(String(car.id), car.sellerId||'', car.priceVal||0, paymentIntent.id);
 }
 
 // ══ NOTIFICATION ══
@@ -3726,7 +3895,7 @@ async function loadNotifications(){
       badge.textContent = unread > 0 ? String(unread) : '';
       badge.style.display = unread > 0 ? 'flex' : 'none';
     }
-  }catch(e){ console.log('通知読み込みエラー:', e); }
+  }catch(e){ window._log('通知読み込みエラー:', e); }
 }
 
 function renderNotif(){
@@ -3785,11 +3954,9 @@ async function markAllRead(){
 
 // ══ 管理画面 ══
 // 管理者UIDリスト（FirestoreのusersでisAdmin:trueのものも使用可）
-const ADMIN_UIDS = ['admin_uid_here']; // ← Firebase ConsoleでUIDを確認して追加
-
+// 管理者判定はFirestoreのisAdmin:trueで行う（openAdmin()参照）
 function isAdmin(){
-  const uid = window._fbAuth?.currentUser?.uid;
-  return ADMIN_UIDS.includes(uid);
+  return false; // openAdmin()内でFirestore確認
 }
 
 function switchAdminTab(idx){
@@ -3835,7 +4002,7 @@ async function loadAdminTransport(){
     if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">申込はまだありません</div>'; return; }
     el.innerHTML = snap.docs.map(doc=>{
       const d = doc.data();
-      const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('ja-JP') : '';
+      const date = _fmtDate(d.createdAt);
       const statusClass = d.status === 'confirmed' ? 'confirmed' : d.status === 'cancelled' ? 'cancelled' : 'pending';
       const statusLabel = {pending:'未対応', confirmed:'対応済', cancelled:'キャンセル'}[d.status] || d.status;
       return `<div class="admin-row">
@@ -3876,7 +4043,7 @@ async function loadAdminListings(){
     if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">出品はありません</div>'; return; }
     el.innerHTML = snap.docs.map(doc=>{
       const d = doc.data();
-      const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('ja-JP') : '';
+      const date = _fmtDate(d.createdAt);
       const statusColor = d.status==='sold' ? '#1A9E68' : d.status==='active' ? 'var(--accent)' : 'var(--text-muted)';
       const statusLabel = {active:'出品中', sold:'売却済', deleted:'削除済'}[d.status] || d.status;
       return `<div class="admin-row">
@@ -3912,7 +4079,7 @@ async function loadAdminUsers(){
     if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">ユーザーはいません</div>'; return; }
     el.innerHTML = snap.docs.map(doc=>{
       const d = doc.data();
-      const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('ja-JP') : '';
+      const date = _fmtDate(d.createdAt);
       return `<div class="admin-row">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${d.username||'名無し'}</div>
@@ -3953,7 +4120,7 @@ async function loadAdminInquiries(){
     if(snap.empty){ el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px;">問い合わせはありません</div>'; return; }
     el.innerHTML = snap.docs.map(doc=>{
       const d = doc.data();
-      const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('ja-JP') : '';
+      const date = _fmtDate(d.createdAt);
       const statusColor = d.status==='closed' ? '#1A9E68' : '#F59E0B';
       return `<div class="admin-row">
         <div style="display:flex;justify-content:space-between;">
@@ -4030,7 +4197,7 @@ async function openProfileEdit(){
     if(f('peAvatarImg') && (d.photoURL||d.avatarUrl)){
       f('peAvatarImg').src = d.photoURL||d.avatarUrl;
     }
-  }catch(e){ console.log('openProfileEdit load err:', e); }
+  }catch(e){ window._log('openProfileEdit load err:', e); }
   goTo('profileEdit');
 }
 
@@ -4087,7 +4254,7 @@ async function loadGarageList(){
       </div>`;
     }).join('');
   }catch(e){
-    console.log('garage load err:', e);
+    window._log('garage load err:', e);
     if(el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent);font-size:12px;">読み込みエラー: '+e.message+'<br><span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="loadGarageList()">再読み込み</span></div>';
   }
 }
@@ -4128,7 +4295,7 @@ function openGarageEdit(docId){
       if(d.tags && Array.isArray(d.tags)){
         document.querySelectorAll('.garage-chip').forEach(c=>{ if(d.tags.includes(c.textContent.trim())) c.classList.add('on'); });
       }
-    }catch(e){ console.log('garage load err:', e); showToast('⚠️ 読み込みに失敗しました', 'var(--accent)'); return; }
+    }catch(e){ window._log('garage load err:', e); showToast('⚠️ 読み込みに失敗しました', 'var(--accent)'); return; }
   } else {
     if(title) title.textContent = '愛車を追加';
     if(delBtn) delBtn.style.display = 'none';
@@ -4163,7 +4330,7 @@ async function saveGarageCar(){
     await loadGarageList();
     goBack();
   }catch(e){
-    console.log('garage save err:', e);
+    window._log('garage save err:', e);
     showToast('⚠️ 保存に失敗しました: ' + e.message, 'var(--accent)');
   }
   finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
@@ -4214,84 +4381,86 @@ function toggleGarageChip(el, acc){
 }
 
 // ══ 住所編集 ══
-function openAddressEdit(){
+async function openAddressEdit(){
   const user = window._fbAuth?.currentUser;
   if(!user){ goTo('login'); return; }
-  window._fbDb.collection('users').doc(user.uid).get().then(doc=>{
-    if(!doc.exists) return;
-    const d = doc.data();
-    const f = id => document.getElementById(id);
-    if(f('addr_zip'))    f('addr_zip').value    = d.addrZip||'';
-    if(f('addr_pref'))   f('addr_pref').value   = d.addrPref||'';
-    if(f('addr_city'))   f('addr_city').value   = d.addrCity||'';
-    if(f('addr_street')) f('addr_street').value = d.addrStreet||'';
-    if(f('addr_name'))   f('addr_name').value   = d.addrName||'';
-  }).catch(()=>{});
+  try {
+    const doc = await window._fbDb.collection('users').doc(user.uid).get();
+    if(doc.exists) {
+      const d = doc.data();
+      const f = id => document.getElementById(id);
+      if(f('addr_zip'))    f('addr_zip').value    = d.addrZip||'';
+      if(f('addr_pref'))   f('addr_pref').value   = d.addrPref||'';
+      if(f('addr_city'))   f('addr_city').value   = d.addrCity||'';
+      if(f('addr_street')) f('addr_street').value = d.addrStreet||'';
+      if(f('addr_name'))   f('addr_name').value   = d.addrName||'';
+    }
+  } catch(e){ window._log('addressEdit load err:', e); }
   goTo('addressEdit');
 }
 
 async function saveAddress(){
   const user = window._fbAuth?.currentUser;
-  if(!user || !window._fbDb) return;
+  if(!user) return;
   const btn = document.querySelector('#screenAddressEdit .pe-save-btn');
-  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
+  _setBtnLoading(btn, true, '保存中...');
   const f = id => document.getElementById(id)?.value?.trim()||'';
-  try{
-    await window._fbDb.collection('users').doc(user.uid).set({
-      addrZip: f('addr_zip'), addrPref: f('addr_pref'), addrCity: f('addr_city'),
-      addrStreet: f('addr_street'), addrName: f('addr_name'), updatedAt: new Date().toISOString()
-    },{ merge:true });
-    showToast('✓ 住所を保存しました', 'var(--green)');
-    goBack();
-  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
+  const ok = await _updateUser(user.uid, {
+    addrZip: f('addr_zip'), addrPref: f('addr_pref'), addrCity: f('addr_city'),
+    addrStreet: f('addr_street'), addrName: f('addr_name'), updatedAt: new Date().toISOString()
+  });
+  _setBtnLoading(btn, false, '', '保存する');
+  if(ok){ showToast('✓ 住所を保存しました', 'var(--green)'); goBack(); }
+  else    showToast('⚠️ 保存に失敗しました', 'var(--accent)');
 }
 
 // ══ 口座登録 ══
-function openBankRegister(){
+async function openBankRegister(){
   const user = window._fbAuth?.currentUser;
   if(!user){ goTo('login'); return; }
-  window._fbDb.collection('users').doc(user.uid).get().then(doc=>{
-    if(!doc.exists) return;
-    const d = doc.data();
-    const cardArea = document.getElementById('bankCardArea');
-    const formArea = document.getElementById('bankFormArea');
-    const saveBar  = document.getElementById('bankSaveBar');
-    if(d.bankName){
-      if(cardArea){ cardArea.style.display='block'; }
-      if(formArea){ formArea.style.display='none'; }
-      if(saveBar)  { saveBar.style.display='none'; }
-      const cn = document.getElementById('bankCardName');
-      const cu = document.getElementById('bankCardNum');
-      const ch = document.getElementById('bankCardHolder');
-      if(cn) cn.textContent = d.bankName + (d.bankBranch?' '+d.bankBranch:'');
-      if(cu) cu.textContent = d.bankType+' '+d.bankNumber?.replace(/.(?=.{2})/g,'*');
-      if(ch) ch.textContent = d.bankHolder||'';
-    } else {
-      if(cardArea){ cardArea.style.display='none'; }
-      if(formArea){ formArea.style.display='block'; }
-      if(saveBar)  { saveBar.style.display='block'; }
+  try {
+    const doc = await window._fbDb.collection('users').doc(user.uid).get();
+    if(doc.exists) {
+      const d = doc.data();
+      const cardArea = document.getElementById('bankCardArea');
+      const formArea = document.getElementById('bankFormArea');
+      const saveBar  = document.getElementById('bankSaveBar');
+      if(d.bankName){
+        if(cardArea) cardArea.style.display='block';
+        if(formArea) formArea.style.display='none';
+        if(saveBar)  saveBar.style.display='none';
+        const cn = document.getElementById('bankCardName');
+        const cu = document.getElementById('bankCardNum');
+        const ch = document.getElementById('bankCardHolder');
+        if(cn) cn.textContent = d.bankName + (d.bankBranch?' '+d.bankBranch:'');
+        if(cu) cu.textContent = d.bankType+' '+(d.bankNumber||'').replace(/.(?=.{2})/g,'*');
+        if(ch) ch.textContent = d.bankHolder||'';
+      } else {
+        if(cardArea) cardArea.style.display='none';
+        if(formArea) formArea.style.display='block';
+        if(saveBar)  saveBar.style.display='block';
+      }
     }
-  }).catch(()=>{});
+  } catch(e){ window._log('bankRegister load err:', e); }
   goTo('bankRegister');
 }
 
 async function saveBankAccount(){
   const user = window._fbAuth?.currentUser;
-  if(!user || !window._fbDb) return;
+  if(!user) return;
   const f = id => document.getElementById(id)?.value?.trim()||'';
-  if(!f('bank_name')||!f('bank_number')||!f('bank_holder')){ showToast('⚠️ 必須項目を入力してください', 'var(--accent)'); return; }
+  if(!f('bank_name')||!f('bank_number')||!f('bank_holder')){
+    showToast('⚠️ 必須項目を入力してください', 'var(--accent)'); return;
+  }
   const btn = document.querySelector('#screenBankRegister .pe-save-btn');
-  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
-  try{
-    await window._fbDb.collection('users').doc(user.uid).set({
-      bankName: f('bank_name'), bankBranch: f('bank_branch'), bankType: f('bank_type'),
-      bankNumber: f('bank_number'), bankHolder: f('bank_holder'), updatedAt: new Date().toISOString()
-    },{ merge:true });
-    showToast('✓ 口座を登録しました', 'var(--green)');
-    goBack();
-  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
+  _setBtnLoading(btn, true, '保存中...');
+  const ok = await _updateUser(user.uid, {
+    bankName: f('bank_name'), bankBranch: f('bank_branch'), bankType: f('bank_type'),
+    bankNumber: f('bank_number'), bankHolder: f('bank_holder'), updatedAt: new Date().toISOString()
+  });
+  _setBtnLoading(btn, false, '', '保存する');
+  if(ok){ showToast('✓ 口座を登録しました', 'var(--green)'); goBack(); }
+  else    showToast('⚠️ 保存に失敗しました', 'var(--accent)');
 }
 
 async function deleteBankAccount(){
@@ -4460,7 +4629,7 @@ async function loadMyPurchases(){
     el.innerHTML = docs.map(doc=>{
       const d = doc.data();
       const price = d.price ? '¥'+Number(d.price).toLocaleString('ja-JP') : '';
-      const date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('ja-JP') : '';
+      const date = _fmtDate(d.createdAt);
       const img = d.img||d.listingImg||d.mainPhoto||'';
       return `<div style="display:flex;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border);cursor:pointer;background:var(--surface);" onclick="goTo('detail','${d.listingId}')">
         <img src="${img}" style="width:80px;height:60px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg);">
@@ -4696,7 +4865,7 @@ function toggleSellChip(el, acc){
   if(badge){ badge.textContent = cnt+'件'; badge.style.display = cnt>0 ? 'inline-block' : 'none'; }
 }
 
-function saveSellDraft(){
+async function saveSellDraft(){
   const user = window._fbAuth?.currentUser;
   if(!user){ showToast('⚠️ ログインが必要です', 'var(--accent)'); return; }
   const f = id => document.getElementById(id)?.value?.trim()||'';
@@ -4708,9 +4877,12 @@ function saveSellDraft(){
     updatedAt: new Date().toISOString()
   };
   if(window._fbDb){
-    window._fbDb.collection('drafts').add(data)
-      .then(()=>showToast('✓ 下書きを保存しました', 'var(--green)'))
-      .catch(()=>showToast('⚠️ 保存に失敗しました', 'var(--accent)'));
+    try {
+      await window._fbDb.collection('drafts').add(data);
+      showToast('✓ 下書きを保存しました', 'var(--green)');
+    } catch(e) {
+      showToast('⚠️ 保存に失敗しました', 'var(--accent)');
+    }
   }
 }
 
@@ -4771,9 +4943,7 @@ async function doSellSubmit(){
     await window._fbDb.collection('listings').add(data);
 
     // 出品数インクリメント
-    window._fbDb.collection('users').doc(user.uid).set({
-      sellCount: firebase.firestore.FieldValue.increment(1)
-    },{merge:true}).catch(()=>{});
+    _updateUser(user.uid, { sellCount: firebase.firestore.FieldValue.increment(1) });
 
     resetSellForm();
     goTo('sellSuccess');
@@ -4900,7 +5070,7 @@ async function goToTalkFromDetail(){
     openChat(roomId);
   }catch(e){
     showToast('⚠️ トークの開始に失敗しました', 'var(--accent)');
-    console.log('talk error:', e);
+    window._log('talk error:', e);
   }
 }
 
@@ -4996,7 +5166,7 @@ async function doSaveProfile(){
     await loadUserProfile(user.uid);
     goBack();
   }catch(e){
-    console.log('doSaveProfile err:', e);
+    window._log('doSaveProfile err:', e);
     showToast('⚠️ 保存に失敗しました: '+e.message, 'var(--accent)');
   }
   finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
@@ -5222,7 +5392,7 @@ async function subscribeChat(roomId){
         CHAT_MESSAGES[roomId] = msgs;
         renderChatMsgs(roomId);
       });
-  }catch(e){ console.log('chat subscribe error:', e); }
+  }catch(e){ window._log('chat subscribe error:', e); }
 }
 
 async function sendChatMsg(){
@@ -5249,7 +5419,7 @@ async function sendChatMsg(){
         updatedAt: new Date().toISOString()
       }, {merge:true});
       return; // リアルタイムリスナーが自動で描画
-    }catch(e){ console.log('send error:', e); }
+    }catch(e){ window._log('send error:', e); }
   }
 
   // Firestore失敗時はローカル
@@ -5381,6 +5551,52 @@ function openChatCarDetail(){
   // ホームの車データと照合して詳細へ
   const car = carsData.find(c=>c.name.includes(room.carName.split(' ')[0]));
   if(car) goTo('detail', car.id);
+}
+
+// ══ 共通ユーティリティ ══
+
+/** Firestoreドキュメント取得（エラー時はnullを返す） */
+async function _getDoc(path, id) {
+  try {
+    const doc = await window._fbDb.collection(path).doc(id).get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) { window._log('_getDoc err:', path, id, e.message); return null; }
+}
+
+/** 現在のログインユーザーを取得（未ログインはnull） */
+function _getUser() {
+  return window._fbAuth?.currentUser || null;
+}
+
+/** 現在のユーザーUIDを取得 */
+function _getUid() {
+  return window._fbAuth?.currentUser?.uid || null;
+}
+
+/** ユーザードキュメント取得 */
+async function _getUserDoc(uid) {
+  return _getDoc('users', uid);
+}
+
+/** Firestore更新（merge:true で安全上書き） */
+async function _updateUser(uid, data) {
+  try {
+    await window._fbDb.collection('users').doc(uid).set(data, { merge: true });
+    return true;
+  } catch(e) { window._log('_updateUser err:', uid, e.message); return false; }
+}
+
+/** ボタンのローディング状態を切り替え */
+function _setBtnLoading(btn, loading, loadText='処理中...', defaultText='保存する') {
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? loadText : defaultText;
+}
+
+/** 日付フォーマット（ja-JP） */
+function _fmtDate(isoStr) {
+  if(!isoStr) return '';
+  return new Date(isoStr).toLocaleDateString('ja-JP');
 }
 
 // ── ボトムナビ共通注入 ──
@@ -5551,7 +5767,7 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js')
       .then(r=>{})
-      .catch(e=>console.log('SW error:', e));
+      .catch(e=>window._log('SW error:', e));
   });
 }
 
@@ -5583,7 +5799,7 @@ if('serviceWorker' in navigator){
       // リフレッシュ実行
       const title = document.getElementById('homeTitle');
       if(title){ title.textContent = '更新中...'; }
-      loadListings().then(()=>{
+      loadListings().finally(()=>{
         if(title) title.textContent = 'あなたへのおすすめ';
       });
     }
