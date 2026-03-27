@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" sizes="167x167" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><!-- ══ Firebase compat（file://でも動く版）══ -->
-<!-- Stripe.js v3 -->
+<!-- Stripe.js v3 (asyncで非同期読み込み) -->
 <script src="https://js.stripe.com/v3/" async></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -71,15 +71,9 @@
             lastLoginAt: new Date().toISOString()
           },{merge:true}).catch(()=>{});
         }
-        // まだlaunch画面なら自動でホームへ
-        // ラウンチ画面またはログイン画面にいる場合、自動でホームへ
-        const launch = document.getElementById('screenLaunch');
-        const loginScr = document.getElementById('screenLogin');
-        if(launch && (launch.classList.contains('screen-launch-default') || launch.classList.contains('active'))){
-          showHome();
-        } else if(loginScr && loginScr.classList.contains('active')){
-          showHome();
-        }
+        // launch画面またはlogin画面にいる場合は自動でホームへ
+        const curScreen = screenStack[screenStack.length - 1];
+        if(curScreen === 'launch' || curScreen === 'login') showHome();
       }catch(e){ window._log('自動ログイン復元エラー:', e); }
     }
   });
@@ -106,7 +100,7 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 .screen.active{display:block;}
 
 /* ラウンチ画面はJSなしで最初から表示 */
-/* screen-launch-default → active に統一 */
+/* screen-launch-default は active クラスに統一 */
 
 /* ═══════════ SHARED BOTTOM NAV ═══════════ */
 .bottom-nav{position:absolute;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(18,17,24,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid rgba(255,255,255,.07);display:flex;align-items:flex-start;padding-top:8px;padding-bottom:var(--sab);z-index:30;}
@@ -441,12 +435,12 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 .launch-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:0;}
 .launch-logo-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
 .launch-logo-txt{font-family:var(--font-num);font-size:13px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:.2em;}
-.launch-center{position:absolute;inset:0;display:flex;flex-direction:column;padding:70px 28px 64px;z-index:50;}
+.launch-center{position:absolute;inset:0;display:flex;flex-direction:column;padding:70px 28px 64px;z-index:5;}
 .launch-h{font-size:33px;font-weight:800;color:#fff;line-height:1.28;margin-bottom:12px;letter-spacing:-.02em;text-shadow:0 2px 20px rgba(0,0,0,.95),0 4px 40px rgba(0,0,0,.8);}
 .launch-h span{background:linear-gradient(110deg,#E0AAFF,#C084FC,#F472B6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.launch-btns{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:20px;position:relative;z-index:999;}
-.launch-btn-main{width:100%;height:58px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#A855F7 50%,#C026D3);color:#fff;border:none;font-family:var(--font-body);font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation;box-shadow:0 8px 32px rgba(124,58,237,.6),inset 0 1px 0 rgba(255,255,255,.3);letter-spacing:.02em;transition:transform .15s,box-shadow .15s;pointer-events:auto !important;position:relative;z-index:9999 !important;}
-.launch-btn-sub{width:100%;height:52px;border-radius:16px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(16px);letter-spacing:.01em;pointer-events:auto !important;position:relative;z-index:9999 !important;}
+.launch-btns{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:20px;position:relative;z-index:10;}
+.launch-btn-main{width:100%;height:58px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#A855F7 50%,#C026D3);color:#fff;border:none;font-family:var(--font-body);font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation;box-shadow:0 8px 32px rgba(124,58,237,.6),inset 0 1px 0 rgba(255,255,255,.3);letter-spacing:.02em;transition:transform .15s,box-shadow .15s;}
+.launch-btn-sub{width:100%;height:52px;border-radius:16px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(16px);letter-spacing:.01em;}
 .launch-logo-wrap{display:none;}
 .launch-main{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:60;}
 .launch-sub{font-size:12px;color:rgba(255,255,255,.42);line-height:1.8;letter-spacing:.04em;}
@@ -1430,8 +1424,8 @@ select.pe-input, select.flt-range-sel {
       <div class="launch-h">あなたのこだわりが、<br><span>価値になる。</span></div>
       <div class="launch-sub">カスタム車・パーツ専用フリマ</div>
       <div class="launch-btns">
-        <button class="launch-btn-main" onclick="launchNavigate('onboard')" style="position:relative;z-index:200;pointer-events:auto;">はじめる</button>
-        <button class="launch-btn-sub" onclick="launchNavigate('login')" style="position:relative;z-index:200;pointer-events:auto;">ログインはこちら</button>
+        <button class="launch-btn-main" id="btnLaunchStart">はじめる</button>
+        <button class="launch-btn-sub" id="btnLaunchLogin">ログインはこちら</button>
       </div>
     </div>
     <div class="launch-terms">登録により利用規約・プライバシーポリシーに同意したものとみなします</div>
@@ -2268,14 +2262,8 @@ function goTo(target,carId){
   const cur=screenStack[screenStack.length-1];
   if(cur===target&&target!=='detail')return;
 
-  // 全画面を非表示（launchは別管理）
-  document.querySelectorAll('.screen').forEach(s=>{
-    s.classList.remove('active');
-    s.style.display='';
-  });
-  // launch画面を確実に非表示
-  const launchEl=document.getElementById('screenLaunch');
-  if(launchEl){launchEl.classList.remove('screen-launch-default','active');launchEl.style.display='none';}
+  // 全画面を非表示
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
   // 画面ID解決マップ
   const screenMap = {
@@ -3086,73 +3074,25 @@ function validateReg(){
 }
 
 function launchNavigate(target){
-  // launch画面を隠す
-  let launch = document.getElementById('screenLaunch');
-  if(launch){
-    launch.style.display = 'none';
-    launch.classList.remove('screen-launch-default','active');
-  }
   // 全screen非表示
-  document.querySelectorAll('.screen').forEach(function(s){
-    s.classList.remove('active');
-    
-  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   // 対象を表示
-  let map = {
-    'onboard':'screenOnboard',
-    'login':'screenLogin',
-    'register':'screenRegister'
-  };
-  let screenId = map[target];
-  if(screenId){
-    let el = document.getElementById(screenId);
-    if(el) el.classList.add('active');
-  }
+  const ids = { onboard:'screenOnboard', login:'screenLogin', register:'screenRegister' };
+  const el = document.getElementById(ids[target]);
+  if(el) el.classList.add('active');
   screenStack = [target];
   if(target === 'login') setTimeout(loadSavedLogin, 100);
 }
+
+
 function showHome(){
-  // 全画面を非表示
-  document.querySelectorAll('.screen').forEach(s=>{
-    s.classList.remove('active');
-    s.style.display='';
-  });
-  // launch画面を確実に非表示
-  const launch = document.getElementById('screenLaunch');
-  if(launch){launch.classList.remove('screen-launch-default','active');launch.style.display='none';}
-  // ホーム画面だけ表示
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const home = document.getElementById('screenHome');
   if(home) home.classList.add('active');
   screenStack = ['home'];
   renderCards();
 }
 
-// ── Firestoreにプロフィールを保存・読み込み ──
-async function saveUserProfile(uid, uname, email){
-  try{
-    // 既存ドキュメントを確認してから保存（上書きしない）
-    const existing = await window._fbDb.collection('users').doc(uid).get();
-    if(existing.exists){
-      // 既存ユーザー: username と email だけ更新（他のデータは保持）
-      await window._fbDb.collection('users').doc(uid).set({
-        username: uname,
-        email: email,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-    } else {
-      // 新規ユーザー: 初期値で作成
-      await window._fbDb.collection('users').doc(uid).set({
-        username: uname, email: email,
-        createdAt: new Date().toISOString(),
-        balance: 0, points: 0, sellCount: 0, buyCount: 0,
-        ratingCount: 0, rating: 0
-      }, { merge: true });
-    }
-  }catch(e){ window._log('プロフィール保存エラー:', e); }
-}
-
-// ══ リアルタイムカウント（Firestoreリスナー） ══
-let _countUnsubscribes = [];
 
 function subscribeRealtimeCounts(uid){
   // 既存リスナーを解除
@@ -5644,6 +5584,11 @@ function addRipple(e, el){
 // ボタン・カード類にリップルを自動付与
 document.addEventListener('DOMContentLoaded', ()=>{
   applyRipples();
+  // launch画面ボタンのイベントをJSで設定（onclick属性より確実）
+  const btnStart = document.getElementById('btnLaunchStart');
+  const btnLogin = document.getElementById('btnLaunchLogin');
+  if(btnStart) btnStart.addEventListener('click', function(){ launchNavigate('onboard'); });
+  if(btnLogin) btnLogin.addEventListener('click', function(){ launchNavigate('login'); });
 });
 function applyRipples(){
   const selectors = [
