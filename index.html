@@ -4198,7 +4198,7 @@ async function loadGarageList(){
   }
 }
 
-function openGarageEdit(docId){
+async function openGarageEdit(docId){
   const user = window._fbAuth?.currentUser;
   if(!user){ goTo('login'); return; }
   garageEditId = docId;
