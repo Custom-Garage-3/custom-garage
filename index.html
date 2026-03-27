@@ -668,6 +668,10 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 .msg-bubble.theirs{background:#fff;border-radius:4px 16px 16px 16px;color:var(--text-primary);}
 .msg-bubble.mine{background:#DCF8C6;border-radius:16px 4px 16px 16px;color:#1A1A18;}
 .msg-bubble.selected{outline:3px solid var(--accent);}
+.msg-bubble.negotiate-bubble{border-left:3px solid var(--accent);background:#FFF0EE;}
+.msg-bubble.mine.negotiate-bubble{background:#FFE8E5;border-left:none;border-right:3px solid var(--accent);}
+.msg-negotiate-badge{display:inline-block;font-size:10px;font-weight:700;color:var(--accent);background:#FFF0EE;border:1px solid var(--accent);border-radius:20px;padding:1px 8px;margin-bottom:5px;}
+.msg-bubble.mine .msg-negotiate-badge{background:rgba(255,255,255,0.7);}
 .msg-thumb{width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;}
 .msg-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;justify-content:flex-end;}
 .msg-time{font-size:10px;color:rgba(0,0,0,.4);font-family:var(--font-num);white-space:nowrap;}
@@ -2246,6 +2250,7 @@ let currentView=localStorage.getItem('cg_view')||'grid',
     currentSort=localStorage.getItem('cg_sort')||'new',
     currentCarId=null;
 let favorites=new Set(),screenStack=['launch'];
+let _pendingNegotiateText = null;
 let favView='grid',favSort='new';
 let favFilterMakers=new Set(),favFilterHosho=false,favFilterMaxPrice=4000000,favFilterActive=false;
 let fltSelMakers=new Set(),fltCustomCount=0,fltMakerGridBuilt=false;
@@ -2285,7 +2290,7 @@ function goTo(target,carId){
 
   if(target==='home'){screenStack=['home'];renderCards();}
   else if(target==='fav'){renderFavScreen();screenStack=['fav'];}
-  else if(target==='filter'){initFltScreen();screenStack=['filter'];}
+  else if(target==='filter'){initFltScreen();screenStack.push('filter');}
   else if(target==='mypage'){screenStack=['mypage'];}
   else if(target==='detail'){
     const resolvedId = carId!=null ? String(carId) : (currentCarId ? String(currentCarId) : null);
@@ -2329,6 +2334,7 @@ function goBack(){
     notif:'screenNotif',purchaseSuccess:'screenPurchaseSuccess',
     checkout:'screenCheckout',
     detail:'screenDetail',
+    filter:'screenFilter',
   };
   const prevId=extraMap[prev]||('screen'+cap(prev));
   const prevEl=document.getElementById(prevId);
@@ -2572,12 +2578,14 @@ async function sendNegotiateMsg(){
   const text = document.getElementById('negotiateText')?.value?.trim();
   if(!text){ alert('メッセージを入力してください'); return; }
   document.getElementById('negotiateSheet')?.remove();
-  // トークを開始してメッセージを送信
+  // トークを開始してメッセージを送信（type:'negotiate'付き）
   _pretalkCarId = currentCarId;
+  _pendingNegotiateText = text;
   await goToTalkFromDetail();
   setTimeout(async ()=>{
     const inp = document.getElementById('chatInput');
-    if(inp){ inp.textContent = text; await sendChatMsg(); }
+    if(inp){ inp.textContent = text; await sendChatMsgWithType('negotiate'); }
+    _pendingNegotiateText = null;
   }, 500);
 }
 
@@ -2805,7 +2813,11 @@ const fltMakers=[
 const makerMap={トヨタ:'Toyota',日産:'Nissan',ホンダ:'Honda',マツダ:'Mazda',スバル:'Subaru',三菱:'Mitsubishi',BMW:'BMW',ベンツ:'Mercedes',VW:'VW',MINI:'MINI',アウディ:'Audi',ボルボ:'Volvo',ポルシェ:'Porsche',ジープ:'Jeep',プジョー:'Peugeot',レクサス:'Lexus',スズキ:'Suzuki',ダイハツ:'Daihatsu'};
 
 function initFltScreen(){
-  if(!fltMakerGridBuilt){const g=document.getElementById('fltMakerGrid');fltMakers.forEach((m,i)=>{const el=document.createElement('div');el.className='flt-maker-item';el.dataset.idx=i;el.innerHTML=`<div class="flt-maker-icon">${m.logo?`<img src="${m.logo}" alt="${m.name}" onerror="this.style.display='none'">`:`<span style="font-size:20px">${m.text||'🚗'}</span>`}</div><div class="flt-maker-name">${m.name}</div>`;el.onclick=()=>fltToggleMaker(el,i);g.appendChild(el);});fltMakerGridBuilt=true;}
+  if(!fltMakerGridBuilt){const g=document.getElementById('fltMakerGrid');fltMakers.forEach((m,i)=>{const el=document.createElement('div');el.className='flt-maker-item';el.dataset.idx=i;
+    const abbr=m.name.slice(0,2);
+    const fallbackStyle='width:36px;height:36px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-secondary);';
+    const imgHtml=m.logo?`<img src="${m.logo}" alt="${m.name}" style="width:36px;height:36px;object-fit:contain;" onerror="this.outerHTML='<div style=\'${fallbackStyle}\'>${abbr}</div>'">`:`<span style="font-size:20px">${m.text||'🚗'}</span>`;
+    el.innerHTML=`<div class="flt-maker-icon">${imgHtml}</div><div class="flt-maker-name">${m.name}</div>`;el.onclick=()=>fltToggleMaker(el,i);g.appendChild(el);});fltMakerGridBuilt=true;}
   document.querySelectorAll('.flt-maker-item').forEach(el=>el.classList.toggle('flt-selected',fltSelMakers.has(Number(el.dataset.idx))));
   fltRecalc();
 }
@@ -5268,7 +5280,31 @@ function openChat(roomId){
   renderChatMsgs(roomId);
   // Firestoreリアルタイムリスナー開始
   subscribeChat(roomId);
+  // 既読マーク（相手のメッセージをread:trueに更新）
+  markChatMessagesAsRead(roomId);
   goTo('chat');
+}
+
+// ── 既読マーク：チャットを開いた時に相手メッセージをread:trueにする ──
+async function markChatMessagesAsRead(roomId){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb || !roomId) return;
+  try{
+    const snap = await window._fbDb
+      .collection('talks').doc(roomId)
+      .collection('messages')
+      .where('senderId','!=',user.uid)
+      .where('read','==',false)
+      .get();
+    if(snap.empty) return;
+    const batch = window._fbDb.batch();
+    snap.docs.forEach(d => batch.update(d.ref, {read:true}));
+    await batch.commit();
+    // unreadCountもリセット
+    await window._fbDb.collection('talks').doc(roomId).set(
+      {['unreadCount.'+user.uid]: 0}, {merge:true}
+    );
+  }catch(e){ window._log('markRead error:', e); }
 }
 
 function renderChatMsgs(roomId){
@@ -5284,13 +5320,19 @@ function renderChatMsgs(roomId){
       lastDate = dateStr;
     }
     const timeStr = m.time.includes(':') ? m.time : m.time.split(' ')[1]||m.time;
+    // 交渉メッセージの本文を生成
+    const msgBody = m.isImg
+      ? `<img class="msg-img" src="${m.imgUrl}" alt="">`
+      : m.type === 'negotiate'
+        ? `<div class="msg-negotiate-badge">💬 値下げ交渉</div>${m.text}`
+        : m.text;
     if(m.from==='them'){
-      html += `<div class="msg-row" data-id="${m.id}"><div class="msg-bubble theirs" data-id="${m.id}" ontouchstart="startLongPress('${m.id}',false)" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()" onmousedown="startLongPress('${m.id}',false)" onmouseup="cancelLongPress()">${m.isImg ? `<img class="msg-img" src="${m.imgUrl}" alt="">` : m.text}
+      html += `<div class="msg-row" data-id="${m.id}"><div class="msg-bubble theirs${m.type==='negotiate'?' negotiate-bubble':''}" data-id="${m.id}" ontouchstart="startLongPress('${m.id}',false)" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()" onmousedown="startLongPress('${m.id}',false)" onmouseup="cancelLongPress()">${msgBody}
           ${m.reaction ? `<div class="msg-reaction">${m.reaction}</div>` : ''}
         </div><div class="msg-meta"><div class="msg-time">${timeStr}</div></div></div>`;
     } else {
       html += `<div class="msg-row mine" data-id="${m.id}"><div class="msg-meta">${m.read?'<div class="msg-read">既読</div>':''}
-          <div class="msg-time">${timeStr}</div></div><div class="msg-bubble mine" data-id="${m.id}" ontouchstart="startLongPress('${m.id}',true)" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()" onmousedown="startLongPress('${m.id}',true)" onmouseup="cancelLongPress()">${m.isImg ? `<img class="msg-img" src="${m.imgUrl}" alt="">` : m.text}
+          <div class="msg-time">${timeStr}</div></div><div class="msg-bubble mine${m.type==='negotiate'?' negotiate-bubble':''}" data-id="${m.id}" ontouchstart="startLongPress('${m.id}',true)" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()" onmousedown="startLongPress('${m.id}',true)" onmouseup="cancelLongPress()">${msgBody}
           ${m.reaction ? `<div class="msg-reaction">${m.reaction}</div>` : ''}
         </div></div>`;
     }
@@ -5325,13 +5367,53 @@ async function subscribeChat(roomId){
             isImg: m.isImg || false,
             imgUrl: m.imgUrl || '',
             read: m.read || false,
-            reaction: m.reaction || ''
+            reaction: m.reaction || '',
+            type: m.type || '',
+            negotiatePrice: m.negotiatePrice || 0
           };
         });
         CHAT_MESSAGES[roomId] = msgs;
         renderChatMsgs(roomId);
+        // 新着メッセージが届いたらリアルタイムで既読にする
+        if(document.getElementById('screenChat')?.classList.contains('active') && currentRoomId === roomId){
+          markChatMessagesAsRead(roomId);
+        }
       });
   }catch(e){ window._log('chat subscribe error:', e); }
+}
+
+// type付き送信（交渉メッセージ用）
+async function sendChatMsgWithType(type){
+  const input = document.getElementById('chatInput');
+  const text = input?.textContent?.trim();
+  if(!text || !currentRoomId) return;
+  input.textContent = '';
+  const user = window._fbAuth?.currentUser;
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  if(window._fbDb && user){
+    try{
+      const msgData = {
+        senderId: user.uid,
+        text,
+        type: type || '',
+        createdAt: new Date().toISOString(),
+        read: false
+      };
+      await window._fbDb.collection('talks').doc(currentRoomId).collection('messages').add(msgData);
+      await window._fbDb.collection('talks').doc(currentRoomId).set({
+        lastMsg: type === 'negotiate' ? '💬 ' + text : text,
+        updatedAt: new Date().toISOString()
+      }, {merge:true});
+      return;
+    }catch(e){ window._log('send error:', e); }
+  }
+  // Firestore失敗時ローカル
+  const msgId = 'm'+Date.now();
+  const msg = { id:msgId, from:'me', text, time:timeStr, read:false, type: type||'' };
+  if(!CHAT_MESSAGES[currentRoomId]) CHAT_MESSAGES[currentRoomId] = [];
+  CHAT_MESSAGES[currentRoomId].push(msg);
+  renderChatMsgs(currentRoomId);
 }
 
 async function sendChatMsg(){
