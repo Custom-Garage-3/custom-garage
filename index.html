@@ -106,7 +106,7 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 .screen.active{display:block;}
 
 /* ラウンチ画面はJSなしで最初から表示 */
-.screen-launch-default{display:block !important;z-index:50;}
+.screen-launch-default{display:block !important;z-index:50;overflow:hidden;}
 
 /* ═══════════ SHARED BOTTOM NAV ═══════════ */
 .bottom-nav{position:absolute;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(18,17,24,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid rgba(255,255,255,.07);display:flex;align-items:flex-start;padding-top:8px;padding-bottom:var(--sab);z-index:30;}
@@ -424,6 +424,7 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 
 /* ═══ LAUNCH / ONBOARDING ═══ */
 #screenLaunch{background:linear-gradient(175deg,#080012 0%,#150a2e 35%,#1a1040 65%,#08000f 100%) !important;}
+#screenLaunch canvas,#screenLaunch .star,#screenLaunch .orb,#screenLaunch [style*="absolute"]{pointer-events:none !important;}
 .launch-car-wrap{position:absolute;bottom:0;left:0;right:0;height:62%;overflow:hidden;pointer-events:none;}
 .launch-car-img{
   position:absolute;bottom:0;left:-8%;right:-8%;width:116%;height:100%;
@@ -440,14 +441,14 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:v
 .launch-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:0;}
 .launch-logo-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
 .launch-logo-txt{font-family:var(--font-num);font-size:13px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:.2em;}
-.launch-center{position:absolute;inset:0;display:flex;flex-direction:column;padding:70px 28px 64px;z-index:5;}
+.launch-center{position:absolute;inset:0;display:flex;flex-direction:column;padding:70px 28px 64px;z-index:50;}
 .launch-h{font-size:33px;font-weight:800;color:#fff;line-height:1.28;margin-bottom:12px;letter-spacing:-.02em;text-shadow:0 2px 20px rgba(0,0,0,.95),0 4px 40px rgba(0,0,0,.8);}
 .launch-h span{background:linear-gradient(110deg,#E0AAFF,#C084FC,#F472B6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.launch-btns{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:20px;position:relative;z-index:10;}
-.launch-btn-main{width:100%;height:58px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#A855F7 50%,#C026D3);color:#fff;border:none;font-family:var(--font-body);font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation;box-shadow:0 8px 32px rgba(124,58,237,.6),inset 0 1px 0 rgba(255,255,255,.3);letter-spacing:.02em;transition:transform .15s,box-shadow .15s;}
-.launch-btn-sub{width:100%;height:52px;border-radius:16px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(16px);letter-spacing:.01em;}
+.launch-btns{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:20px;position:relative;z-index:999;}
+.launch-btn-main{width:100%;height:58px;border-radius:18px;background:linear-gradient(135deg,#7C3AED,#A855F7 50%,#C026D3);color:#fff;border:none;font-family:var(--font-body);font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation;box-shadow:0 8px 32px rgba(124,58,237,.6),inset 0 1px 0 rgba(255,255,255,.3);letter-spacing:.02em;transition:transform .15s,box-shadow .15s;pointer-events:auto !important;position:relative;z-index:9999 !important;}
+.launch-btn-sub{width:100%;height:52px;border-radius:16px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;backdrop-filter:blur(16px);letter-spacing:.01em;pointer-events:auto !important;position:relative;z-index:9999 !important;}
 .launch-logo-wrap{display:none;}
-.launch-main{flex:1;display:flex;flex-direction:column;justify-content:center;}
+.launch-main{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:60;}
 .launch-sub{font-size:12px;color:rgba(255,255,255,.42);line-height:1.8;letter-spacing:.04em;}
 .launch-terms{flex-shrink:0;text-align:center;font-size:10px;color:rgba(255,255,255,.2);}
 /* onboarding */
@@ -1429,8 +1430,8 @@ select.pe-input, select.flt-range-sel {
       <div class="launch-h">あなたのこだわりが、<br><span>価値になる。</span></div>
       <div class="launch-sub">カスタム車・パーツ専用フリマ</div>
       <div class="launch-btns">
-        <button class="launch-btn-main" onclick="launchNavigate('onboard')">はじめる</button>
-        <button class="launch-btn-sub" onclick="launchNavigate('login')">ログインはこちら</button>
+        <button class="launch-btn-main" onclick="launchNavigate('onboard')" style="position:relative;z-index:200;pointer-events:auto;">はじめる</button>
+        <button class="launch-btn-sub" onclick="launchNavigate('login')" style="position:relative;z-index:200;pointer-events:auto;">ログインはこちら</button>
       </div>
     </div>
     <div class="launch-terms">登録により利用規約・プライバシーポリシーに同意したものとみなします</div>
@@ -1530,7 +1531,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.14-live</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.18-live</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
@@ -3703,6 +3704,8 @@ function openCheckout(){
   if(!currentCarId)return;
   const car=carsData.find(c=>String(c.id)===String(currentCarId));
   if(!car)return;
+  // Stripe Elementsを初期化
+  setTimeout(initStripeElements, 200);
   document.getElementById('coProdImg').src=car.img||'';
   document.getElementById('coProdMaker').textContent=car.maker||'';
   document.getElementById('coProdName').textContent=car.name||'';
@@ -3783,12 +3786,7 @@ function initStripeElements() {
   }
 }
 
-// チェックアウト画面を開いた時にStripeを初期化
-const _origOpenCheckout = openCheckout;
-function openCheckout() {
-  _origOpenCheckout();
-  setTimeout(initStripeElements, 200);
-}
+// Stripe初期化はopenCheckout内で実行
 
 async function doPayment() {
   const btn = document.getElementById('coBtn');
