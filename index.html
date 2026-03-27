@@ -1531,7 +1531,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.18-live</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.19-live</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
@@ -2247,6 +2247,10 @@ async function loadListings(){
 }
 
 // ══ STATE ══
+// ══ グローバル変数 ══
+let screenStack = ['launch'];
+let currentCarId = null;
+
 let currentView=localStorage.getItem('cg_view')||'grid',
     currentSort=localStorage.getItem('cg_sort')||'new',
     currentCarId=null;
