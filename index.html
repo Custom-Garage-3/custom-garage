@@ -32,6 +32,9 @@
   window._fbAuth    = firebase.auth();
   window._fbDb      = firebase.firestore();
   window._fbStorage = firebase.storage();
+
+  // ── Auth永続化: ブラウザを閉じてもログイン状態を維持（LOCAL） ──
+  window._fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
   window._fbCreateUser = (auth, email, pw) => auth.createUserWithEmailAndPassword(email, pw);
   window._fbSignIn     = (auth, email, pw) => auth.signInWithEmailAndPassword(email, pw);
   window._fbSignOut    = (auth) => auth.signOut();
@@ -45,6 +48,8 @@
         await loadGarageList();
         loadNotifications();
         subscribeRealtimeCounts(user.uid);
+        // 最終ログイン時刻を更新（merge:trueで他データを保護）
+        // ※ 下のset({lastLoginAt...})と重複するが念のため
         // 最終ログイン時刻を更新
         if(window._fbDb){
           window._fbDb.collection('users').doc(user.uid).set({
@@ -1480,7 +1485,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.4</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.6</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
@@ -1908,8 +1913,8 @@ async function openUserProfile(uid){
 
     // 出品一覧取得
     const listSnap = await window._fbDb.collection('listings')
-      .where('sellerId','==',uid).where('status','==','active')
-      .orderBy('createdAt','desc').limit(12).get();
+      .where('sellerId','==',uid)
+      .limit(20).get();
     const listings = listSnap.docs.map(doc => {
       const ld = doc.data();
       return { id: doc.id, ...ld };
@@ -2092,36 +2097,51 @@ async function loadListings(){
     grid.style.cssText='display:grid;gap:8px;grid-template-columns:repeat(2,1fr)';
     grid.innerHTML = skels;
   }
+  // まず status=='active' で取得、失敗したら全件取得にフォールバック
+  const mapDoc = (doc) => {
+    const d = doc.data();
+    return {
+      id: doc.id,
+      maker: d.maker || '',
+      name: d.name || ((d.maker||'') + ' ' + (d.model||d.partsName||'')).trim(),
+      priceVal: d.priceVal || d.price || 0,
+      hosho: d.hosho || false,
+      mine: d.sellerId === window._fbAuth?.currentUser?.uid,
+      img: (d.photoURLs && d.photoURLs[0]) || d.mainPhoto || d.photoURL || '',
+      thumbs: d.photoURLs || (d.mainPhoto ? [d.mainPhoto] : []),
+      tags: d.tags || [],
+      spec: d.spec || {年式:d.year||'',走行距離:d.mileage||'',色:d.color||'',車検:d.inspection||'',ミッション:d.mission||'',排気量:d.displacement||'',所在地:d.location||''},
+      desc: d.desc || d.description || '',
+      postedAt: d.createdAt ? new Date(d.createdAt) : new Date(),
+      sellerId: d.sellerId || d.uid || ''
+    };
+  };
   try{
+    // status=='active' のみ取得（orderBy不要でインデックス不要）
     const snap = await window._fbDb.collection('listings')
-      .where('status','==','active')
-      .orderBy('createdAt','desc')
-      .limit(50).get();
+      .where('status','==','active').limit(100).get();
     const badge = document.getElementById('fltTotalBadge');
-    if(badge) badge.textContent = `出品中 ${snap.size}件`;
-    carsData = snap.docs.map((doc,i) => {
-      const d = doc.data();
-      return {
-        id: doc.id,
-        maker: d.maker || '',
-        name: (d.maker||'') + ' ' + (d.model||''),
-        priceVal: d.priceVal || d.price || 0,
-        hosho: d.hosho || false,
-        mine: d.sellerId === window._fbAuth?.currentUser?.uid,
-        img: (d.photoURLs && d.photoURLs[0]) || d.photoURL || '',
-        thumbs: d.photoURLs || [],
-        tags: d.tags || [],
-        spec: d.spec || {年式:d.year||'',走行距離:d.mileage||'',色:d.color||'',車検:d.inspection||''},
-        desc: d.desc || d.description || '',
-        postedAt: d.createdAt ? new Date(d.createdAt) : new Date(),
-        sellerId: d.sellerId || ''
-      };
-    });
+    if(badge) badge.textContent = '出品中 ' + snap.size + '件';
+    carsData = snap.docs.map(mapDoc);
+    carsData.sort((a,b) => b.postedAt - a.postedAt);
     renderCards();
   } catch(e){
-    carsData = [];
-    if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:48px;height:48px;margin-bottom:12px;opacity:.3;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/></svg><div style="font-size:14px;font-weight:600;margin-bottom:6px;">出品中の車両がありません</div><div style="font-size:12px;line-height:1.7;">最初の出品者になりましょう！</div></div>';
-    console.log('loadListings error:', e.message);
+    console.log('loadListings(active) error:', e.message, '→ 全件取得を試みます');
+    // フォールバック: statusフィルタなしで全件取得
+    try{
+      const snap2 = await window._fbDb.collection('listings').limit(100).get();
+      const badge = document.getElementById('fltTotalBadge');
+      if(badge) badge.textContent = '出品中 ' + snap2.size + '件';
+      carsData = snap2.docs
+        .filter(doc => { const s = doc.data().status; return !s || s === 'active'; })
+        .map(mapDoc);
+      carsData.sort((a,b) => b.postedAt - a.postedAt);
+      renderCards();
+    } catch(e2){
+      console.log('loadListings(all) error:', e2.message);
+      carsData = [];
+      if(grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:48px;height:48px;margin-bottom:12px;opacity:.3;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/></svg><div style="font-size:14px;font-weight:600;margin-bottom:6px;">読み込みに失敗しました</div><div style="font-size:12px;color:var(--accent);padding:8px;background:#FFF0EE;border-radius:8px;margin-top:8px;">'+e2.message+'</div></div>';
+    }
   }
 }
 
@@ -2809,22 +2829,28 @@ function showHome(){
 // ── Firestoreにプロフィールを保存・読み込み ──
 async function saveUserProfile(uid, uname, email){
   try{
-    await window._fbDb.collection('users').doc(uid).set({
-      username: uname,
-      email: email,
-      createdAt: new Date().toISOString(),
-      // 初期値（新規登録時はすべて0）
-      balance: 0,
-      points: 0,
-      sellCount: 0,
-      buyCount: 0,
-      ratingCount: 0,
-      rating: 0,
-      bio: '',
-      car: '',
-      photoURL: ''
-    });
-      }catch(e){ console.log('プロフィール保存エラー:', e); }
+    // 既存ドキュメントを確認してから保存（上書きしない）
+    const existing = await window._fbDb.collection('users').doc(uid).get();
+    if(existing.exists){
+      // 既存ユーザー: username と email だけ更新（他のデータは保持）
+      await window._fbDb.collection('users').doc(uid).set({
+        username: uname,
+        email: email,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } else {
+      // 新規ユーザー: 初期値で作成
+      await window._fbDb.collection('users').doc(uid).set({
+        username: uname,
+        email: email,
+        createdAt: new Date().toISOString(),
+        balance: 0, points: 0,
+        sellCount: 0, buyCount: 0,
+        ratingCount: 0, rating: 0,
+        bio: '', car: '', photoURL: ''
+      });
+    }
+  }catch(e){ console.log('プロフィール保存エラー:', e); }
 }
 
 // ══ リアルタイムカウント（Firestoreリスナー） ══
@@ -3814,7 +3840,10 @@ async function loadGarageList(){
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
       </div>`;
     }).join('');
-  }catch(e){ console.log('garage load err:', e); }
+  }catch(e){
+    console.log('garage load err:', e);
+    if(el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent);font-size:12px;">読み込みエラー: '+e.message+'<br><span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="loadGarageList()">再読み込み</span></div>';
+  }
 }
 
 function openGarageEdit(docId){
@@ -3880,7 +3909,10 @@ async function saveGarageCar(){
     showToast('✓ 愛車を保存しました', 'var(--green)');
     await loadGarageList();
     goBack();
-  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
+  }catch(e){
+    console.log('garage save err:', e);
+    showToast('⚠️ 保存に失敗しました: ' + e.message, 'var(--accent)');
+  }
   finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
 }
 
