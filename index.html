@@ -1476,7 +1476,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.2</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.3</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
@@ -3271,16 +3271,17 @@ async function openForgotPassword(){
 }
 
 function updateSellFee(){
-  const val = parseInt(document.getElementById('sell_price')?.value?.replace(/[^0-9]/g,'')||'0');
-  const el = document.getElementById('sellFeeDisplay');
-  if(el && val > 0){
-    const fee = Math.round(val * 0.035);
-    const net = val - fee;
-    el.textContent = `手数料 ¥${fee.toLocaleString('ja-JP')}（3.5%）→ 受取 ¥${net.toLocaleString('ja-JP')}`;
-    el.style.display = 'block';
-  } else if(el){
-    el.style.display = 'none';
-  }
+  const raw = document.getElementById('sell_price')?.value?.replace(/[^0-9]/g,'')||'0';
+  const val = parseInt(raw)||0;
+  const fee = Math.round(val * 0.035);
+  const net = val - fee;
+  const fmt = n => '¥'+n.toLocaleString('ja-JP');
+  const elP = document.getElementById('sellFeePrice');
+  const elF = document.getElementById('sellFeePct');
+  const elN = document.getElementById('sellFeeNet');
+  if(elP) elP.textContent = fmt(val);
+  if(elF) elF.textContent = '- '+fmt(fee);
+  if(elN) elN.textContent = fmt(net);
 }
 async function doLogin(){
   const email    = document.getElementById('login_email')?.value?.trim();
@@ -4126,6 +4127,456 @@ async function loadDraft(docId){
 
 // ══ トーク ══
 function openTalk(roomId){ openChat(roomId); }
+
+// ══ 閲覧履歴 ══
+const HISTORY_KEY = 'cg_history';
+function addToHistory(id){
+  const car = carsData.find(c=>String(c.id)===String(id));
+  if(!car) return;
+  try{
+    const raw = localStorage.getItem(HISTORY_KEY);
+    let hist = raw ? JSON.parse(raw) : [];
+    hist = hist.filter(h=>String(h.id)!==String(id));
+    hist.unshift({ id:car.id, maker:car.maker, name:car.name, price:fmtP(car.priceVal), img:car.img, viewedAt:Date.now() });
+    if(hist.length > 30) hist = hist.slice(0,30);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    const cnt = document.getElementById('historyCount');
+    if(cnt) cnt.textContent = hist.length + '件';
+  }catch(e){}
+}
+
+function emptyState(title, desc){
+  return `<div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px;">${title}</div>
+    <div style="font-size:12px;line-height:1.7;">${desc}</div>
+  </div>`;
+}
+
+// ══ 車種選択 ══
+const _modelMap = {
+  '日産':   ['スカイライン','シルビア','フェアレディZ','GT-R','180SX','ノート','リーフ','マーチ','ティーダ','エクストレイル','ムラーノ','キューブ','ジューク','デイズ','ルークス'],
+  'トヨタ': ['86','GR86','スープラ','クラウン','カムリ','プリウス','アルファード','ヴェルファイア','ランドクルーザー','ハイエース','ヤリス','C-HR','RAV4','ハリアー','カローラ'],
+  'ホンダ': ['シビック','インテグラ','NSX','S2000','フィット','ヴェゼル','CR-V','ステップワゴン','フリード','アコード','レジェンド','ジェイド','グレイス'],
+  'マツダ': ['RX-7','RX-8','ロードスター','アテンザ','アクセラ','CX-5','CX-8','デミオ','スピアーノ','CX-3','CX-30','MAZDA3'],
+  'スバル': ['インプレッサ','WRX STI','BRZ','レガシィ','フォレスター','アウトバック','レヴォーグ','エクシーガ','XV','クロストレック'],
+  '三菱':   ['ランサーエボリューション','GTO','エクリプス','パジェロ','アウトランダー','デリカ','ギャラン','ミラージュ','コルト'],
+  'スズキ': ['スイフト','アルト','ジムニー','ワゴンR','ソリオ','エスクード','カプチーノ','イグニス','クロスビー'],
+  'ダイハツ':['コペン','ムーヴ','タント','ハイゼット','エッセ','ストーリア','ブーン','ロッキー','ミラ'],
+  'BMW':    ['1シリーズ','2シリーズ','3シリーズ','4シリーズ','5シリーズ','7シリーズ','M2','M3','M4','M5','X1','X3','X5','Z4'],
+  'メルセデス・ベンツ': ['Aクラス','Cクラス','Eクラス','Sクラス','GLA','GLC','GLE','AMG GT','CLA','CLS'],
+  'アウディ':['A1','A3','A4','A5','A6','A7','A8','Q3','Q5','Q7','TT','R8','RS3','RS6'],
+  'ポルシェ':['911','718ケイマン','718ボクスター','カイエン','マカン','パナメーラ','タイカン'],
+  'レクサス':['IS','ES','GS','LS','RC','LC','NX','RX','GX','LX','UX','CT'],
+  'フォルクスワーゲン':['ゴルフ','ポロ','ティグアン','パサート','ビートル','アルテオン','ID.4'],
+  'その他': ['その他'],
+};
+
+function updateModelOptions(makerSelId, modelSelId){
+  const maker = document.getElementById(makerSelId)?.value;
+  const modelSel = document.getElementById(modelSelId);
+  if(!modelSel) return;
+  const models = _modelMap[maker] || [];
+  if(!maker || models.length === 0){
+    modelSel.innerHTML = '<option value="">先にメーカーを選択してください</option>';
+    return;
+  }
+  modelSel.innerHTML = '<option value="">車種を選択してください</option>' +
+    models.map(m => `<option>${m}</option>`).join('');
+}
+
+// ══ 出品フォーム ══
+let _sellPhotos = [];
+let _sellDocLicense = null;
+let _sellDocShaken = null;
+let _sellCat = 'car';
+
+function setSellCat(cat){
+  _sellCat = cat;
+  document.getElementById('sellCatCar').classList.toggle('on', cat==='car');
+  document.getElementById('sellCatParts').classList.toggle('on', cat==='parts');
+  document.getElementById('sellCarInfo').style.display = cat==='car' ? 'block' : 'none';
+  document.getElementById('sellPartsInfo').style.display = cat==='parts' ? 'block' : 'none';
+}
+
+function addSellPhotos(input){
+  const files = [...input.files];
+  const remaining = 10 - _sellPhotos.length;
+  files.slice(0, remaining).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      _sellPhotos.push({ file, url: e.target.result });
+      renderSellPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderSellPhotos(){
+  const row = document.getElementById('sellPhotoRow');
+  if(!row) return;
+  const slots = _sellPhotos.map((p,i) => `
+    <div class="sell-photo-slot">
+      <img src="${p.url}" alt="">
+      ${i===0 ? '<div class="sell-photo-main">メイン</div>' : ''}
+      <button class="sell-photo-del" onclick="removeSellPhoto(${i})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" style="width:10px;height:10px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`).join('');
+  const addBtn = _sellPhotos.length < 10
+    ? `<label class="sell-photo-add" for="sellPhotoInput"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:24px;height:24px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>追加</span></label>` : '';
+  row.innerHTML = slots + addBtn;
+}
+
+function removeSellPhoto(idx){
+  _sellPhotos.splice(idx, 1);
+  renderSellPhotos();
+}
+
+function previewSellDoc(input, type){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if(type==='license'){
+      _sellDocLicense = { file, url: e.target.result };
+      document.getElementById('licenseImg').src = e.target.result;
+      document.getElementById('licensePreview').style.display = 'block';
+      document.getElementById('licenseUploadBtn').style.display = 'none';
+    } else {
+      _sellDocShaken = { file, url: e.target.result };
+      document.getElementById('shakenImg').src = e.target.result;
+      document.getElementById('shakenPreview').style.display = 'block';
+      document.getElementById('shakenUploadBtn').style.display = 'none';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeSellDoc(type){
+  if(type==='license'){
+    _sellDocLicense = null;
+    document.getElementById('licensePreview').style.display = 'none';
+    document.getElementById('licenseUploadBtn').style.display = 'flex';
+  } else {
+    _sellDocShaken = null;
+    document.getElementById('shakenPreview').style.display = 'none';
+    document.getElementById('shakenUploadBtn').style.display = 'flex';
+  }
+}
+
+function toggleSellAcc(idx){
+  const body = document.getElementById('sellAccBody'+idx);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'flex';
+}
+
+function toggleSellChip(el, acc){
+  el.classList.toggle('on');
+  const cnt = document.querySelectorAll('#sellAccBody'+acc+' .garage-chip.on').length;
+  const badge = document.getElementById('sellAccCnt'+acc);
+  if(badge){ badge.textContent = cnt+'件'; badge.style.display = cnt>0 ? 'inline-block' : 'none'; }
+}
+
+function saveSellDraft(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ showToast('⚠️ ログインが必要です', 'var(--accent)'); return; }
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  const data = {
+    uid: user.uid, category: _sellCat,
+    maker: f('sell_maker'), model: f('sell_model'), year: f('sell_year'),
+    name: (f('sell_maker')+' '+f('sell_model')).trim() || '下書き',
+    price: f('sell_price'), description: f('sell_desc'),
+    updatedAt: new Date().toISOString()
+  };
+  if(window._fbDb){
+    window._fbDb.collection('drafts').add(data)
+      .then(()=>showToast('✓ 下書きを保存しました', 'var(--green)'))
+      .catch(()=>showToast('⚠️ 保存に失敗しました', 'var(--accent)'));
+  }
+}
+
+async function doSellSubmit(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+
+  // バリデーション
+  if(_sellCat==='car'){
+    if(!f('sell_maker')){ showToast('⚠️ メーカーを選択してください', 'var(--accent)'); return; }
+    if(!f('sell_model')){ showToast('⚠️ 車種を選択してください', 'var(--accent)'); return; }
+  } else {
+    if(!f('sell_parts_name')){ showToast('⚠️ パーツ名を入力してください', 'var(--accent)'); return; }
+  }
+  if(!f('sell_price') || isNaN(parseInt(f('sell_price').replace(/[^0-9]/g,'')))){ showToast('⚠️ 価格を入力してください', 'var(--accent)'); return; }
+  if(!f('sell_desc')){ showToast('⚠️ 説明文を入力してください', 'var(--accent)'); return; }
+
+  const btn = document.querySelector('.sell-submit-btn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<div class="spin-sm"></div> 出品中...'; }
+
+  try{
+    // 写真アップロード
+    const photoURLs = [];
+    for(const p of _sellPhotos){
+      if(window._fbStorage){
+        const ref = window._fbStorage.ref(`listings/${user.uid}/${Date.now()}_${Math.random().toString(36).slice(2)}`);
+        await ref.put(p.file);
+        const url = await ref.getDownloadURL();
+        photoURLs.push(url);
+      }
+    }
+
+    // 出品データ作成
+    const price = parseInt(f('sell_price').replace(/[^0-9]/g,''))||0;
+    const tags = [...document.querySelectorAll('#sellTagAccordion .garage-chip.on')].map(c=>c.textContent.trim());
+    const data = {
+      uid: user.uid, sellerId: user.uid,
+      category: _sellCat,
+      maker: _sellCat==='car' ? f('sell_maker') : f('sell_parts_brand'),
+      model: _sellCat==='car' ? f('sell_model') : f('sell_parts_name'),
+      name: _sellCat==='car'
+        ? (f('sell_maker')+' '+f('sell_model')).trim()
+        : f('sell_parts_name'),
+      year: f('sell_year'), mileage: f('sell_mileage'),
+      mission: f('sell_mission'), displacement: f('sell_displacement'),
+      color: f('sell_color'), inspection: f('sell_inspection'),
+      location: f('sell_location'),
+      description: f('sell_desc'), tags,
+      price, priceVal: price,
+      photoURLs, mainPhoto: photoURLs[0]||'',
+      status: 'active', hosho: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await window._fbDb.collection('listings').add(data);
+
+    // 出品数インクリメント
+    window._fbDb.collection('users').doc(user.uid).set({
+      sellCount: firebase.firestore.FieldValue.increment(1)
+    },{merge:true}).catch(()=>{});
+
+    resetSellForm();
+    goTo('sellSuccess');
+
+    // 一覧を再読み込み
+    setTimeout(()=>loadListings(), 1000);
+  }catch(e){
+    showToast('⚠️ 出品に失敗しました: '+e.message, 'var(--accent)');
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>出品する'; }
+  }
+}
+
+function resetSellForm(){
+  _sellPhotos = [];
+  _sellDocLicense = null;
+  _sellDocShaken = null;
+  renderSellPhotos();
+  ['sell_maker','sell_model','sell_year','sell_mileage','sell_mission','sell_displacement','sell_color','sell_inspection','sell_location','sell_parts_name','sell_parts_fits','sell_parts_brand','sell_parts_condition'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const desc = document.getElementById('sell_desc');
+  if(desc){ desc.value=''; }
+  const price = document.getElementById('sell_price');
+  if(price){ price.value=''; }
+  updateSellFee();
+  document.querySelectorAll('#sellTagAccordion .garage-chip.on').forEach(c=>c.classList.remove('on'));
+  setSellCat('car');
+}
+
+function openListingDetail(id){
+  currentCarId = id;
+  goTo('detail');
+}
+
+// ══ プッシュ通知 ══
+async function requestPushPermission(){
+  if(!('Notification' in window)){
+    showToast('⚠️ このブラウザはプッシュ通知に対応していません', 'var(--accent)');
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if(permission === 'granted'){
+    showToast('✓ プッシュ通知を有効にしました', 'var(--green)');
+    const sub = document.getElementById('mpNotifSub');
+    if(sub) sub.textContent = '有効';
+  } else {
+    showToast('プッシュ通知が拒否されました', '#666');
+  }
+}
+
+// ══ 購入前トーク ══
+let _pretalkCarId = null;
+
+function openPreTalk(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  const car = carsData.find(c=>String(c.id)===String(currentCarId));
+  if(!car){ openCheckout(); return; }
+  // 自分の出品は購入不可
+  if(car.sellerId === user.uid){ showToast('⚠️ 自分の出品は購入できません', 'var(--accent)'); return; }
+  _pretalkCarId = currentCarId;
+  const overlay = document.getElementById('pretalkOverlay');
+  if(overlay) overlay.classList.add('show');
+}
+
+async function goToTalkFromDetail(){
+  const user = window._fbAuth?.currentUser;
+  if(!user){ goTo('login'); return; }
+  const carId = _pretalkCarId || currentCarId;
+  const car = carsData.find(c=>String(c.id)===String(carId));
+  if(!car){ return; }
+
+  const overlay = document.getElementById('pretalkOverlay');
+  if(overlay) overlay.classList.remove('show');
+
+  // 既存のトークルームを探す or 作成
+  if(!window._fbDb){ return; }
+  try{
+    const existing = await window._fbDb.collection('talks')
+      .where('members','array-contains',user.uid)
+      .where('listingId','==',String(carId))
+      .limit(1).get();
+
+    let roomId;
+    if(!existing.empty){
+      roomId = existing.docs[0].id;
+    } else {
+      // 新規トークルーム作成
+      const sellerDoc = await window._fbDb.collection('users').doc(car.sellerId).get();
+      const sellerData = sellerDoc.exists ? sellerDoc.data() : {};
+      const myDoc = await window._fbDb.collection('users').doc(user.uid).get();
+      const myData = myDoc.exists ? myDoc.data() : {};
+
+      const ref = await window._fbDb.collection('talks').add({
+        members: [user.uid, car.sellerId],
+        listingId: String(carId),
+        carName: car.name,
+        carImg: car.img||'',
+        carPrice: car.priceVal||0,
+        sellerId: car.sellerId,
+        buyerId: user.uid,
+        otherName: sellerData.username||'出品者',
+        otherAvatar: sellerData.photoURL||'',
+        lastMsg: '',
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        unreadCount: {}
+      });
+      roomId = ref.id;
+    }
+
+    // トークルームを追加してチャット画面へ
+    if(!TALK_ROOMS.find(r=>r.id===roomId)){
+      const sellerDoc = await window._fbDb.collection('users').doc(car.sellerId).get();
+      const sd = sellerDoc.exists ? sellerDoc.data() : {};
+      TALK_ROOMS.unshift({
+        id:roomId, name:sd.username||'出品者', avatar:sd.photoURL||'',
+        carImg:car.img||'', carName:car.name, carPrice:car.priceVal||0,
+        lastMsg:'', time:'', unread:0
+      });
+    }
+    openChat(roomId);
+  }catch(e){
+    showToast('⚠️ トークの開始に失敗しました', 'var(--accent)');
+    console.log('talk error:', e);
+  }
+}
+
+function skipTalkAndCheckout(){
+  const overlay = document.getElementById('pretalkOverlay');
+  if(overlay) overlay.classList.remove('show');
+  openCheckout();
+}
+
+// ══ 支払い方法画面 ══
+function switchPmTab(tab){
+  document.getElementById('pmTabCard')?.classList.toggle('on', tab==='card');
+  document.getElementById('pmTabBank')?.classList.toggle('on', tab==='bank');
+  const card = document.getElementById('pmCardSection');
+  const bank = document.getElementById('paymentBankSection');
+  if(card) card.style.display = tab==='card' ? 'block' : 'none';
+  if(bank) bank.style.display = tab==='bank' ? 'block' : 'none';
+}
+
+function showPaymentForm(){
+  const form = document.getElementById('paymentForm');
+  if(form) form.style.display = 'block';
+}
+
+function savePaymentCard(){
+  const num = document.getElementById('pm_cardnum')?.value?.replace(/\s/g,'');
+  const name = document.getElementById('pm_name')?.value?.trim();
+  const exp = document.getElementById('pm_expiry')?.value?.trim();
+  if(!num||!name||!exp){ showToast('⚠️ 全ての項目を入力してください', 'var(--accent)'); return; }
+  // 表示用にマスク
+  const masked = '**** **** **** '+num.slice(-4);
+  const el = document.getElementById('pmCardNum');
+  const nameEl = document.getElementById('pmCardName');
+  const expEl = document.getElementById('pmCardExp');
+  if(el) el.textContent = masked;
+  if(nameEl) nameEl.textContent = name.toUpperCase();
+  if(expEl) expEl.textContent = exp;
+  const form = document.getElementById('paymentForm');
+  if(form) form.style.display = 'none';
+  showToast('✓ カードを登録しました', 'var(--green)');
+  const sub = document.getElementById('mpPaymentSub');
+  if(sub) sub.textContent = masked;
+}
+
+function deletePaymentCard(){
+  if(!confirm('カード情報を削除しますか？')) return;
+  const el = document.getElementById('pmCardNum');
+  const nameEl = document.getElementById('pmCardName');
+  const expEl = document.getElementById('pmCardExp');
+  if(el) el.textContent = '**** **** **** ****';
+  if(nameEl) nameEl.textContent = '未登録';
+  if(expEl) expEl.textContent = '--/--';
+  showToast('削除しました', '#333');
+  const sub = document.getElementById('mpPaymentSub');
+  if(sub) sub.textContent = '未登録';
+}
+
+async function saveBankTransfer(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb) return;
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  if(!f('pm_bank_name')||!f('pm_bank_number')||!f('pm_bank_holder')){ showToast('⚠️ 必須項目を入力してください', 'var(--accent)'); return; }
+  try{
+    await window._fbDb.collection('users').doc(user.uid).set({
+      bankName: f('pm_bank_name'), bankBranch: f('pm_bank_branch'),
+      bankType: f('pm_bank_type'), bankNumber: f('pm_bank_number'),
+      bankHolder: f('pm_bank_holder'), updatedAt: new Date().toISOString()
+    },{merge:true});
+    showToast('✓ 口座を登録しました', 'var(--green)');
+  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
+}
+
+// プロフィール保存（画面のボタンから呼ばれる）
+async function doSaveProfile(){
+  const user = window._fbAuth?.currentUser;
+  if(!user || !window._fbDb) return;
+  const btn = document.querySelector('#screenProfileEdit .pe-save-btn');
+  if(btn){ btn.disabled=true; btn.textContent='保存中...'; }
+  const f = id => document.getElementById(id)?.value?.trim()||'';
+  try{
+    await window._fbDb.collection('users').doc(user.uid).set({
+      username: f('pe_username') || f('pe_uname'),
+      bio: f('pe_bio'),
+      car: f('pe_car'),
+      appeal: f('pe_appeal'),
+      prefecture: f('pe_pref'),
+      updatedAt: new Date().toISOString()
+    },{merge:true});
+    showToast('✓ プロフィールを保存しました', 'var(--green)');
+    await loadUserProfile(user.uid);
+    goBack();
+  }catch(e){ showToast('⚠️ 保存に失敗しました', 'var(--accent)'); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent='保存する'; } }
+}
 
 function timeAgo(date){
   const diff = (new Date() - date) / 1000;
