@@ -42,7 +42,7 @@
 
   // 開発用ログ（本番では非表示）
   const _DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  window._log = (...a) => { if(_DEV) window._log(...a); };
+  window._log = (...a) => { if(_DEV) console.log(...a); };
 
   window._fbAuth    = firebase.auth();
   window._fbDb      = firebase.firestore();
@@ -1530,7 +1530,7 @@ select.pe-input, select.flt-range-sel {
         <span onclick="goTo('register')">新規登録</span>
       </div>
       <!-- バージョン確認用 -->
-      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.13-live</div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.2);margin-top:8px;">v2026.03.27.14-live</div>
     </div>
   </div>
 </div><!-- ══ 決済（checkout）══ -->
